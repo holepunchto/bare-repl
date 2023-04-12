@@ -1,0 +1,21 @@
+{
+  "name": "pearjs-repl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "standard && pear test.js",
+    "install": "pear-dev rebuild",
+    "prebuild": "pear-dev prebuild",
+    "fix": "clang-format -i *.c && npx standard --fix"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@pearjs/pipe": "^1.0.1"
+  },
+  "devDependencies": {
+    "standard": "^17.0.0"
+  }
+}
