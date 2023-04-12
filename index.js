@@ -9,10 +9,15 @@ module.exports = class Repl {
 
   start () {
     this._printPrompt()
+
     this._pipe.on('data', (data) => {
       const expr = data.toString()
-      const result = this.run(expr)
-      console.log(result)
+      try {
+        const result = this.run(expr)
+        console.log(result)
+      } catch (e) {
+        console.log(e.name, ':', e.message)
+      }
       this._printPrompt()
     })
   }
