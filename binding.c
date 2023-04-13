@@ -34,12 +34,6 @@ run (js_env_t *env, js_callback_info_t *info) {
   e = js_run_script(env, NULL, 0, 0, script, &result);
   assert(e == 0);
 
-  bool has_exception;
-  e = js_is_exception_pending(env, &has_exception);
-  assert(e == 0);
-
-  assert(!has_exception);
-
   return result;
 }
 
