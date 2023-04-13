@@ -15,3 +15,8 @@ undefined
 3
 ```
 
+
+``` javascript
+const repl = new Repl()
+repl.start()
+```
