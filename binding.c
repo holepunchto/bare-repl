@@ -79,7 +79,7 @@ run (js_env_t *env, js_callback_info_t *info) {
     break;
   }
   case js_object: {
-    js_create_object(env, &return_value);
+    return_value = result;
     break;
   }
   case js_function: {
