@@ -40,64 +40,7 @@ run (js_env_t *env, js_callback_info_t *info) {
 
   assert(!has_exception);
 
-  js_value_type_t *type;
-  js_value_t *return_value;
-
-  js_typeof(env, result, &type);
-
-  switch ((int) (long) type) {
-  case js_undefined: {
-    js_get_undefined(env, &return_value);
-    break;
-  }
-  case js_null: {
-    js_get_null(env, &return_value);
-    break;
-  }
-  case js_boolean: {
-    bool value;
-    js_get_value_bool(env, result, &value);
-    js_get_boolean(env, value, &return_value);
-    break;
-  }
-  case js_number: {
-    int value;
-    js_get_value_int32(env, result, &value);
-    js_create_int32(env, value, &return_value);
-    break;
-  }
-  case js_string: {
-    size_t str_len;
-    js_get_value_string_utf8(env, result, NULL, 0, &str_len);
-    char *value = malloc(str_len);
-    js_get_value_string_utf8(env, result, value, -1, NULL);
-    js_create_string_utf8(env, value, -1, &return_value);
-    break;
-  }
-  case js_symbol: {
-    js_create_symbol(env, result, &return_value);
-    break;
-  }
-  case js_object: {
-    return_value = result;
-    break;
-  }
-  case js_function: {
-    js_create_function(env, "", -1, result, NULL, &return_value); // TODO get function name
-    break;
-  }
-  case js_external: {
-    break;
-  }
-  case js_bigint: {
-    int64_t value;
-    js_get_value_bigint_int64(env, result, &value);
-    js_create_bigint_int64(env, value, &return_value);
-    break;
-  }
-  }
-
-  return return_value;
+  return result;
 }
 
 static js_value_t *
