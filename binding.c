@@ -32,9 +32,12 @@ run (js_env_t *env, js_callback_info_t *info) {
 
   js_value_t *result;
   e = js_run_script(env, NULL, 0, 0, script, &result);
-  assert(e == 0);
 
-  return result;
+  if (e == 0) {
+    return result;
+  } else {
+    return NULL;
+  }
 }
 
 static js_value_t *

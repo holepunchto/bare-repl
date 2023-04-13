@@ -16,7 +16,7 @@ module.exports = class Repl {
         const result = this.run(expr)
         console.log(result)
       } catch (e) {
-        console.log(e.name, ':', e.message)
+        console.log(e.name + ':', e.message)
       }
       this._printPrompt()
     })
