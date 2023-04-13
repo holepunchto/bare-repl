@@ -67,9 +67,10 @@ run (js_env_t *env, js_callback_info_t *info) {
     break;
   }
   case js_string: {
-    char value[1024 * 512];
-    size_t written;
-    js_get_value_string_utf8(env, result, &value, -1, &written);
+    size_t str_len;
+    js_get_value_string_utf8(env, result, NULL, 0, &str_len);
+    char value[str_len];
+    js_get_value_string_utf8(env, result, &value, -1, NULL);
     js_create_string_utf8(env, value, -1, &return_value);
     break;
   }
