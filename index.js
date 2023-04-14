@@ -6,8 +6,8 @@ const EOL = process.platform === 'win32' ? '\r\n' : '\n'
 module.exports = class Repl {
   constructor () {
     this._prompt = '> '
-    this._pipe = new Pipe(1)
-
+    this._input = new Pipe(0)
+    this._output = new Pipe(1)
     this._context = {}
     this._contextProxy = new Proxy(this._context, {
       set (obj, prop, value) {
@@ -23,40 +23,49 @@ module.exports = class Repl {
     this._commands.set('.help', this.help)
 
     this._session = ''
+    this._log = console.log
   }
 
   get context () {
     return this._contextProxy
   }
 
-  start () {
+  start (opts = {}) {
+    if (opts.prompt) this._prompt = opts.prompt
+    if (opts.input) this._input = opts.input
+    if (opts.output) {
+      this._output = opts.output
+      this._log = this._output.write
+    }
     this._printPrompt()
+    this._input.on('data', this._ondata.bind(this))
+    return this
+  }
 
-    this._pipe.on('data', async (data) => {
-      const expr = data.toString().trim()
+  async _ondata (data) {
+    const expr = data.toString().trim()
 
-      if (expr[0] === '.') {
-        const command = expr.split(' ')[0]
-        const args = expr.split(' ').slice(1)
-        if (this._commands.get(command) !== undefined) {
-          try {
-            await this._commands.get(command).bind(this)(...args)
-          } catch (err) {
-            console.log(err)
-          }
-        }
-      } else {
+    if (expr[0] === '.') {
+      const command = expr.split(' ')[0]
+      const args = expr.split(' ').slice(1)
+      if (this._commands.get(command) !== undefined) {
         try {
-          const result = this.run(expr)
-          this._session += expr + EOL
-          console.log(result)
-        } catch (e) {
-          console.log(e.name + ':', e.message)
+          await this._commands.get(command).bind(this)(...args)
+        } catch (err) {
+          this._log(err)
         }
       }
+    } else {
+      try {
+        const result = this.run(expr)
+        this._session += expr + EOL
+        this._log(result)
+      } catch (e) {
+        this._log(e.name + ':', e.message)
+      }
+    }
 
-      this._printPrompt()
-    })
+    this._printPrompt()
   }
 
   async save (path) {
@@ -75,7 +84,7 @@ module.exports = class Repl {
   }
 
   _printPrompt () {
-    this._pipe.write(this._prompt)
+    this._output.write(this._prompt)
   }
 
   run (expr) {
