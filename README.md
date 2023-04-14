@@ -48,7 +48,7 @@ Options include:
 Define a repl command keyword. 
 
 ``` javascript
-repl.define('greet, { help: 'Greetings', action: () => console.log('hello') })
+repl.defineCommand('greet, { help: 'Greetings', action: () => console.log('hello') })
 ```
 
 ``` bash
