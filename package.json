@@ -17,7 +17,8 @@
     "@pearjs/os": "^1.1.0",
     "@pearjs/pipe": "^1.0.1",
     "i": "^0.3.7",
-    "npm": "^9.6.4"
+    "npm": "^9.6.4",
+    "tiny-crayon": "^1.0.5"
   },
   "devDependencies": {
     "brittle": "^3.2.1",

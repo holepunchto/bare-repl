@@ -2,6 +2,7 @@ const binding = require('./binding')
 const Pipe = require('@pearjs/pipe')
 const { writeFileSync, readFileSync } = require('@pearjs/fs')
 const EOL = process.platform === 'win32' ? '\r\n' : '\n'
+const { Crayon } = require('tiny-crayon')
 
 module.exports = class Repl {
   constructor () {
@@ -24,6 +25,7 @@ module.exports = class Repl {
 
     this._session = ''
     this._log = console.log
+    this._eval = null
   }
 
   get context () {
@@ -32,11 +34,16 @@ module.exports = class Repl {
 
   start (opts = {}) {
     if (opts.prompt) this._prompt = opts.prompt
+    if (opts.eval) this._eval = opts.eval
     if (opts.input) this._input = opts.input
     if (opts.output) {
       this._output = opts.output
       this._log = this._output.write
     }
+    if (opts.useColors === false) {
+      global.console.crayon = new Crayon({ isTTY: false })
+    }
+
     this._printPrompt()
     this._input.on('data', this._ondata.bind(this))
     return this
@@ -57,7 +64,7 @@ module.exports = class Repl {
       }
     } else {
       try {
-        const result = this.run(expr)
+        const result = await this.run(expr)
         this._session += expr + EOL
         this._log(result)
       } catch (e) {
@@ -76,7 +83,7 @@ module.exports = class Repl {
     const session = (await readFileSync(path)).toString()
     this._session = session
     for (const line of session.split(EOL)) {
-      this.run(line)
+      await this.run(line)
     }
   }
 
@@ -87,8 +94,8 @@ module.exports = class Repl {
     this._output.write(this._prompt)
   }
 
-  run (expr) {
-    const value = binding.run(expr)
+  async run (expr) {
+    const value = this.eval ? await this.eval(expr) : await binding.run(expr)
     binding.set_context('_', value)
     return value
   }
