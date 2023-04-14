@@ -1,3 +1,3 @@
-const Repl = require('./index.js')
-const repl = new Repl()
+const REPLServer = require('./index.js')
+const repl = new REPLServer()
 repl.start()

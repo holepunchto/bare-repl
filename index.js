@@ -4,7 +4,7 @@ const { writeFileSync, readFileSync } = require('@pearjs/fs')
 const EOL = process.platform === 'win32' ? '\r\n' : '\n'
 const { Crayon } = require('tiny-crayon')
 
-module.exports = class Repl {
+module.exports = class REPLServer {
   constructor () {
     this._prompt = '> '
     this._input = new Pipe(0)
@@ -19,12 +19,13 @@ module.exports = class Repl {
     binding.set_context('_', undefined)
 
     this._commands = new Map()
-    this._commands.set('.save', this.save)
-    this._commands.set('.load', this.load)
-    this._commands.set('.help', this.help)
+    this._commands.set('.save', this._save)
+    this._commands.set('.load', this._load)
+    this._commands.set('.help', this._help)
 
     this._session = ''
-    this._log = console.log
+    this._writer = (e) => e
+    this._log = (e) => console.log(this._writer(e))
     this._eval = null
   }
 
@@ -34,11 +35,12 @@ module.exports = class Repl {
 
   start (opts = {}) {
     if (opts.prompt) this._prompt = opts.prompt
+    if (opts.writer) this._writer = opts.writer
     if (opts.eval) this._eval = opts.eval
     if (opts.input) this._input = opts.input
     if (opts.output) {
       this._output = opts.output
-      this._log = this._output.write
+      this._log = (e) => this._output.write(this._writer(e))
     }
     if (opts.useColors === false) {
       global.console.crayon = new Crayon({ isTTY: false })
@@ -47,6 +49,10 @@ module.exports = class Repl {
     this._printPrompt()
     this._input.on('data', this._ondata.bind(this))
     return this
+  }
+
+  defineCommand (keyword, { help, action }) {
+    this._commands.set('.' + keyword, action)
   }
 
   async _ondata (data) {
@@ -75,11 +81,11 @@ module.exports = class Repl {
     this._printPrompt()
   }
 
-  async save (path) {
+  async _save (path) {
     return writeFileSync(path, this._session)
   }
 
-  async load (path) {
+  async _load (path) {
     const session = (await readFileSync(path)).toString()
     this._session = session
     for (const line of session.split(EOL)) {
@@ -87,7 +93,7 @@ module.exports = class Repl {
     }
   }
 
-  help () {
+  _help () {
   }
 
   _printPrompt () {
