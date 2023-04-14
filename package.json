@@ -16,6 +16,7 @@
     "@pearjs/pipe": "^1.0.1"
   },
   "devDependencies": {
+    "brittle": "^3.2.1",
     "standard": "^17.0.0"
   }
 }

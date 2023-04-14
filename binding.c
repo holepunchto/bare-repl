@@ -17,13 +17,12 @@ run (js_env_t *env, js_callback_info_t *info) {
   e = js_get_callback_info(env, info, &argc, argv, NULL, NULL);
   assert(e == 0);
 
-  uint32_t exprLength;
-  js_get_value_uint32(env, argv[1], &exprLength);
+  size_t expr_len = 0;
+  e = js_get_value_string_utf8(env, argv[0], NULL, 0, &expr_len);
   assert(e == 0);
 
-  char expr[exprLength];
-  size_t written;
-  e = js_get_value_string_utf8(env, argv[0], expr, exprLength, &written);
+  char expr[expr_len + 1];
+  e = js_get_value_string_utf8(env, argv[0], expr, expr_len + 1, NULL);
   assert(e == 0);
 
   js_value_t *script;

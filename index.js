@@ -5,6 +5,17 @@ module.exports = class Repl {
   constructor () {
     this._prompt = '> '
     this._pipe = new Pipe(1)
+    this._context = {}
+    this._contextProxy = new Proxy(this._context, {
+      set (obj, prop, value) {
+        binding.set_context(prop, value)
+        obj[prop] = value
+      }
+    })
+  }
+
+  get context () {
+    return this._contextProxy
   }
 
   start () {
@@ -22,11 +33,28 @@ module.exports = class Repl {
     })
   }
 
+  break () {
+
+  }
+
+  save () {
+
+  }
+
+  load () {
+
+  }
+
+  help () {
+
+  }
+
   _printPrompt () {
     this._pipe.write(this._prompt)
   }
 
   run (expr) {
-    return binding.run(expr, expr.length + 1)
+    const value = binding.run(expr)
+    return value
   }
 }
