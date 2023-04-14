@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "standard && pear test.js",
+    "test": "pear test/index.test.js",
     "install": "pear-dev rebuild",
     "prebuild": "pear-dev prebuild",
     "fix": "clang-format -i *.c && npx standard --fix"

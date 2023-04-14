@@ -12,6 +12,7 @@ module.exports = class Repl {
         obj[prop] = value
       }
     })
+    binding.set_context('_', undefined)
   }
 
   get context () {
@@ -55,6 +56,7 @@ module.exports = class Repl {
 
   run (expr) {
     const value = binding.run(expr)
+    binding.set_context('_', value)
     return value
   }
 }

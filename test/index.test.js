@@ -1,7 +1,7 @@
 const Repl = require('../index.js')
 const test = require('brittle')
 
-test.solo('context', (t) => {
+test('context', (t) => {
   const repl = new Repl()
   repl.context.bar = 1
   repl.context.bar = 2
@@ -19,4 +19,13 @@ test('basic run', (t) => {
   const a = repl.run('let a = "a"; a')
   t.is(add, 2)
   t.is(a, 'a')
+})
+
+test.solo('underscore', (t) => {
+  const repl = new Repl()
+  t.is(repl.run('_'), undefined)
+  repl.run('1 + 1')
+  t.is(repl.run('_'), 2)
+  repl.run('Buffer.alloc(10)')
+  t.is(repl.run('_').length, 10)
 })
