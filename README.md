@@ -56,3 +56,17 @@ pearjs-repl
 > .greet
 hello 
 ```
+
+## context
+
+Set execution context.
+
+``` javascript
+repl.context.f = () => console.log('Hello from context')
+```
+
+``` bash
+pearjs-repl
+> f()
+Hello from context
+```
