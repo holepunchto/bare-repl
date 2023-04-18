@@ -1,5 +1,6 @@
 const binding = require('./binding')
 const Pipe = require('@pearjs/pipe')
+const TTYPipe = require('@pearjs/tty')
 const { writeFileSync, readFileSync } = require('@pearjs/fs')
 const EOL = process.platform === 'win32' ? '\r\n' : '\n'
 const { Crayon } = require('tiny-crayon')
@@ -7,7 +8,7 @@ const { Crayon } = require('tiny-crayon')
 module.exports = class REPLServer {
   constructor () {
     this._prompt = '> '
-    this._input = new Pipe(0)
+    this._input = new TTYPipe(0)
     this._output = new Pipe(1)
     this._context = {}
     this._contextProxy = new Proxy(this._context, {
@@ -27,6 +28,9 @@ module.exports = class REPLServer {
     this._writer = (e) => e
     this._log = (e) => console.log(this._writer(e))
     this._eval = null
+    this._buffer = Buffer.alloc(0)
+    this._history = []
+    this._historyIndex = 0
   }
 
   get context () {
@@ -47,7 +51,7 @@ module.exports = class REPLServer {
     }
 
     this._printPrompt()
-    this._input.on('data', this._ondata.bind(this))
+    this._input.on('data', this._onData.bind(this))
     return this
   }
 
@@ -55,8 +59,34 @@ module.exports = class REPLServer {
     this._commands.set('.' + keyword, action)
   }
 
-  async _ondata (data) {
-    const expr = data.toString().trim()
+  async _onData (data) {
+    const pressed = key(data)
+    if (pressed === 'Ctrl+C') {
+      process.exit(0)
+    } else if (pressed === 'Backspace') {
+      await this._onBackspace()
+    } else if (pressed === 'Enter') {
+      await this._onEnter()
+    } else if (pressed === 'Up') {
+      await this._onUp()
+    } else if (pressed === 'Down') {
+      await this._onDown()
+    } else {
+      this._output.write(data)
+      this._buffer = Buffer.concat([this._buffer, data])
+    }
+  }
+
+  _onBackspace () {
+    this._output.write('\b')
+    this._output.write(' ')
+    this._output.write('\b')
+    this._buffer = this._buffer.subarray(0, this._buffer.length - 1)
+  }
+
+  async _onEnter () {
+    this._output.write(EOL)
+    const expr = this._buffer.toString().trim()
 
     if (expr[0] === '.') {
       const command = expr.split(' ')[0]
@@ -76,9 +106,33 @@ module.exports = class REPLServer {
       } catch (e) {
         this._log(e.name + ':', e.message)
       }
+      this._historyIndex++
+      this._history.push(this._buffer)
     }
 
+    this._buffer = Buffer.alloc(0) // clean buffer after runninf expr
+    this._historyIndex = this._history.length
     this._printPrompt()
+  }
+
+  _onUp () {
+    this._historyIndex--
+    if (this._historyIndex < 0) {
+      this._historyIndex = 0
+    }
+    deleteLine()
+    this._output.write(this._history[this._historyIndex])
+    this._buffer = this._history[this._historyIndex]
+  }
+
+  _onDown () {
+    this._historyIndex++
+    if (this._historyIndex >= this._history.length) {
+      this._historyIndex = this._history.length - 1
+    }
+    deleteLine()
+    this._output.write(this._history[this._historyIndex])
+    this._buffer = this._history[this._historyIndex]
   }
 
   async _save (path) {
@@ -104,5 +158,24 @@ module.exports = class REPLServer {
     const value = this.eval ? await this.eval(expr) : await binding.run(expr)
     binding.set_context('_', value)
     return value
+  }
+}
+
+function key (buff) {
+  const s = buff.toString('hex')
+  switch (s) {
+    case '0d' : return 'Enter'
+    case '7f' : return 'Backspace'
+    case '1b5b41' : return 'Up'
+    case '1b5b42' : return 'Down'
+    case '03' : return 'Ctrl+C'
+  }
+}
+
+function deleteLine () {
+  for (let i = 0; i < this._buffer.length; i++) {
+    this._output.write('\b')
+    this._output.write(' ')
+    this._output.write('\b')
   }
 }
