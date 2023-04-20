@@ -77,16 +77,21 @@ module.exports = class REPLServer {
     } else if (pressed === 'Left') {
       await this._onLeft()
     } else {
-      this._output.write(data)
-      this._buffer += data.toString()
+      const index = this._buffer.length + this._cursorOffset
+      this._buffer = this._buffer.slice(0, index) + data.toString() + this._buffer.slice(index)
+      this._reset()
     }
   }
 
   _onBackspace () {
-    this._output.write('\b')
-    this._output.write(' ')
-    this._output.write('\b')
-    this._buffer = this._buffer.substring(0, this._buffer.length - 1)
+    if (Math.abs(this._cursorOffset) < this._buffer.length) { // if cursor is not at the beginning of the line
+      this._output.write('\b')
+      this._output.write(' ')
+      this._output.write('\b')
+      const index = this._buffer.length + this._cursorOffset - 1
+      this._buffer = this._buffer.slice(0, index) + this._buffer.slice(index + 1)
+      this._reset()
+    }
   }
 
   async _onEnter () {
@@ -116,6 +121,7 @@ module.exports = class REPLServer {
     }
 
     this._buffer = '' // clean buffer after runninf expr
+    this._cursorOffset = 0
     this._historyIndex = this._history.length
     this._printPrompt()
   }
@@ -125,9 +131,9 @@ module.exports = class REPLServer {
     if (this._historyIndex < 0) {
       this._historyIndex = 0
     }
-    this._deleteLine()
-    this._output.write(this._history[this._historyIndex])
     this._buffer = this._history[this._historyIndex]
+    this._cursorOffset = 0
+    this._reset()
   }
 
   _onDown () {
@@ -135,17 +141,34 @@ module.exports = class REPLServer {
     if (this._historyIndex >= this._history.length) {
       this._historyIndex = this._history.length - 1
     }
-    this._deleteLine()
-    this._output.write(this._history[this._historyIndex])
     this._buffer = this._history[this._historyIndex]
+    this._cursorOffset = 0
+    this._reset()
   }
 
   _onRight () {
-    // TODO
+    if (this._cursorOffset < 0) {
+      this._cursorOffset++
+      this._output.write(Buffer.from([0x1b, 0x5b, 0x31, 0x43]))
+    }
   }
 
   _onLeft () {
-    // TODO
+    if (Math.abs(this._cursorOffset) < this._buffer.length) {
+      this._cursorOffset--
+      this._output.write('\b')
+    }
+  }
+
+  _reset () {
+    this._output.write(Buffer.from([0x20, 0x1b, 0x5b, 0x31, 0x47])) // move cursor to beginning of line
+    this._output.write(Buffer.from([0x20, 0x1b, 0x5b, 0x32, 0x4b])) // delete until the end of the line
+    this._output.write(Buffer.from([0x20, 0x1b, 0x5b, 0x31, 0x47])) // after deleting, cursor moves 1 column to the right, go back
+    this._printPrompt()
+    this._output.write(this._buffer)
+    for (let i = 0; i < Math.abs(this._cursorOffset); i++) {
+      this._output.write('\b')
+    }
   }
 
   async _save (path) {
@@ -165,14 +188,6 @@ module.exports = class REPLServer {
 
   _printPrompt () {
     this._output.write(this._prompt)
-  }
-
-  _deleteLine () {
-    for (let i = 0; i < this._buffer.length; i++) {
-      this._output.write('\b')
-      this._output.write(' ')
-      this._output.write('\b')
-    }
   }
 
   async run (expr) {
