@@ -26,11 +26,12 @@ module.exports = class REPLServer {
 
     this._session = ''
     this._writer = (e) => e
-    this._log = (e) => console.log(this._writer(e))
+    this._log = (...e) => console.log(...e.map(this._writer))
     this._eval = null
     this._buffer = Buffer.alloc(0)
     this._history = []
     this._historyIndex = 0
+    this._cursorOffset = 0
   }
 
   get context () {
@@ -71,6 +72,10 @@ module.exports = class REPLServer {
       await this._onUp()
     } else if (pressed === 'Down') {
       await this._onDown()
+    } else if (pressed === 'Right') {
+      await this._onRight()
+    } else if (pressed === 'Left') {
+      await this._onLeft()
     } else {
       this._output.write(data)
       this._buffer = Buffer.concat([this._buffer, data])
@@ -120,7 +125,7 @@ module.exports = class REPLServer {
     if (this._historyIndex < 0) {
       this._historyIndex = 0
     }
-    deleteLine()
+    this._deleteLine()
     this._output.write(this._history[this._historyIndex])
     this._buffer = this._history[this._historyIndex]
   }
@@ -130,9 +135,17 @@ module.exports = class REPLServer {
     if (this._historyIndex >= this._history.length) {
       this._historyIndex = this._history.length - 1
     }
-    deleteLine()
+    this._deleteLine()
     this._output.write(this._history[this._historyIndex])
     this._buffer = this._history[this._historyIndex]
+  }
+
+  _onRight () {
+    // TODO
+  }
+
+  _onLeft () {
+    // TODO
   }
 
   async _save (path) {
@@ -154,6 +167,14 @@ module.exports = class REPLServer {
     this._output.write(this._prompt)
   }
 
+  _deleteLine () {
+    for (let i = 0; i < this._buffer.length; i++) {
+      this._output.write('\b')
+      this._output.write(' ')
+      this._output.write('\b')
+    }
+  }
+
   async run (expr) {
     const value = this.eval ? await this.eval(expr) : await binding.run(expr)
     binding.set_context('_', value)
@@ -168,14 +189,8 @@ function key (buff) {
     case '7f' : return 'Backspace'
     case '1b5b41' : return 'Up'
     case '1b5b42' : return 'Down'
+    case '1b5b43' : return 'Right'
+    case '1b5b44' : return 'Left'
     case '03' : return 'Ctrl+C'
-  }
-}
-
-function deleteLine () {
-  for (let i = 0; i < this._buffer.length; i++) {
-    this._output.write('\b')
-    this._output.write(' ')
-    this._output.write('\b')
   }
 }
