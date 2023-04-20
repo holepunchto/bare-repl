@@ -28,7 +28,7 @@ module.exports = class REPLServer {
     this._writer = (e) => e
     this._log = (...e) => console.log(...e.map(this._writer))
     this._eval = null
-    this._buffer = Buffer.alloc(0)
+    this._buffer = ''
     this._history = []
     this._historyIndex = 0
     this._cursorOffset = 0
@@ -78,7 +78,7 @@ module.exports = class REPLServer {
       await this._onLeft()
     } else {
       this._output.write(data)
-      this._buffer = Buffer.concat([this._buffer, data])
+      this._buffer += data.toString()
     }
   }
 
@@ -86,12 +86,12 @@ module.exports = class REPLServer {
     this._output.write('\b')
     this._output.write(' ')
     this._output.write('\b')
-    this._buffer = this._buffer.subarray(0, this._buffer.length - 1)
+    this._buffer = this._buffer.substring(0, this._buffer.length - 1)
   }
 
   async _onEnter () {
     this._output.write(EOL)
-    const expr = this._buffer.toString().trim()
+    const expr = this._buffer.trim()
 
     if (expr[0] === '.') {
       const command = expr.split(' ')[0]
@@ -115,7 +115,7 @@ module.exports = class REPLServer {
       this._history.push(this._buffer)
     }
 
-    this._buffer = Buffer.alloc(0) // clean buffer after runninf expr
+    this._buffer = '' // clean buffer after runninf expr
     this._historyIndex = this._history.length
     this._printPrompt()
   }
