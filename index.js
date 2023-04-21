@@ -5,8 +5,8 @@ const { writeFileSync, readFileSync } = require('@pearjs/fs')
 const EOL = process.platform === 'win32' ? '\r\n' : '\n'
 const { Crayon } = require('tiny-crayon')
 
-// const logger = new Pipe('/tmp/debug')
-// const debug = (e) => logger.write(e + EOL)
+const logger = new Pipe('/tmp/debug')
+const debug = (e) => logger.write(e + EOL)
 
 module.exports = class REPLServer {
   constructor () {
@@ -31,7 +31,7 @@ module.exports = class REPLServer {
     this._log = (...e) => console.log(...e.map(this._writer))
     this._eval = null
     this._buffer = ''
-    this._history = []
+    this._history = new History()
     this._historyIndex = 0
     this._cursorOffset = 0
   }
@@ -64,6 +64,8 @@ module.exports = class REPLServer {
 
   async _onData (data) {
     const pressed = key(data)
+    // console.log(data)
+    // return
     switch (pressed) {
       case ('Ctrl+C'): {
         process.exit(0)
@@ -91,6 +93,18 @@ module.exports = class REPLServer {
       }
       case ('Left'): {
         await this._onLeft()
+        break
+      }
+      case ('Home'): {
+        break
+      }
+      case ('End'): {
+        break
+      }
+      case ('PageUp'): {
+        break
+      }
+      case ('PageDown'): {
         break
       }
       default: {
@@ -133,34 +147,31 @@ module.exports = class REPLServer {
       } catch (e) {
         this._log(e.name + ':', e.message)
       }
-      // this._historyIndex++
       this._history.push(this._buffer)
     }
 
     this._buffer = '' // clean buffer after runninf expr
     this._cursorOffset = 0
-    this._historyIndex = this._history.length
+    this._historyIndex = 0
     this._printPrompt()
   }
 
   _onUp () {
-    if (this._history.length === 0) { return }
+    if ((this._historyIndex === 0) && (this._buffer.length > 0)) return // stops if there's something written in the buffer
+    if (this._history.getLenght() === 0) return // stops if history is empty
+    if ((this._history.getLenght() + this._historyIndex) <= 0) return // stops if reached end of history
+
     this._historyIndex--
-    if (this._historyIndex < 0) {
-      this._historyIndex = 0
-    }
-    this._buffer = this._history[this._historyIndex]
+    this._buffer = this._history.get(this._historyIndex)
     this._cursorOffset = 0
     this._reset()
   }
 
   _onDown () {
-    if (this._history.length === 0) { return }
+    if (this._historyIndex === 0) return // stops if beginning of history
+
     this._historyIndex++
-    if (this._historyIndex >= this._history.length) {
-      this._historyIndex = this._history.length - 1
-    }
-    this._buffer = this._history[this._historyIndex]
+    this._buffer = (this._historyIndex === 0) ? '' : this._history.get(this._historyIndex)
     this._cursorOffset = 0
     this._reset()
   }
@@ -191,7 +202,7 @@ module.exports = class REPLServer {
   }
 
   async _save (path) {
-    return writeFileSync(path, this._history.join('\n'))
+    return writeFileSync(path, this._history.asSingleString())
   }
 
   async _load (path) {
@@ -225,5 +236,31 @@ function key (buff) {
     case '1b5b43' : return 'Right'
     case '1b5b44' : return 'Left'
     case '03' : return 'Ctrl+C'
+    case '1b5b48' : return 'Home'
+    case '1b5b46' : return 'End'
+    case '1b5b357e' : return 'PageUp'
+    case '1b5b367e' : return 'PageDown'
+  }
+}
+
+class History {
+  constructor () {
+    this.arr = []
+  }
+
+  push (x) {
+    this.arr.push(x)
+  }
+
+  get (x) {
+    return this.arr[this.arr.length + x]
+  }
+
+  getLenght () {
+    return this.arr.length
+  }
+
+  asSingleString () {
+    return this.arr.join('\n')
   }
 }
