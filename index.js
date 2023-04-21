@@ -5,6 +5,9 @@ const { writeFileSync, readFileSync } = require('@pearjs/fs')
 const EOL = process.platform === 'win32' ? '\r\n' : '\n'
 const { Crayon } = require('tiny-crayon')
 
+const logger = new Pipe('/tmp/debug')
+const debug = (e) => logger.write(e + EOL)
+
 module.exports = class REPLServer {
   constructor () {
     this._prompt = '> '
@@ -62,24 +65,40 @@ module.exports = class REPLServer {
 
   async _onData (data) {
     const pressed = key(data)
-    if (pressed === 'Ctrl+C') {
-      process.exit(0)
-    } else if (pressed === 'Backspace') {
-      await this._onBackspace()
-    } else if (pressed === 'Enter') {
-      await this._onEnter()
-    } else if (pressed === 'Up') {
-      await this._onUp()
-    } else if (pressed === 'Down') {
-      await this._onDown()
-    } else if (pressed === 'Right') {
-      await this._onRight()
-    } else if (pressed === 'Left') {
-      await this._onLeft()
-    } else {
-      const index = this._buffer.length + this._cursorOffset
-      this._buffer = this._buffer.slice(0, index) + data.toString() + this._buffer.slice(index)
-      this._reset()
+    switch (pressed) {
+      case ('Ctrl+C'): {
+        process.exit(0)
+        break
+      }
+      case ('Backspace'): {
+        await this._onBackspace()
+        break
+      }
+      case ('Enter'): {
+        await this._onEnter()
+        break
+      }
+      case ('Up'): {
+        await this._onUp()
+        break
+      }
+      case ('Down'): {
+        await this._onDown()
+        break
+      }
+      case ('Right'): {
+        await this._onRight()
+        break
+      }
+      case ('Left'): {
+        await this._onLeft()
+        break
+      }
+      default: {
+        const index = this._buffer.length + this._cursorOffset
+        this._buffer = this._buffer.slice(0, index) + data.toString() + this._buffer.slice(index)
+        this._reset()
+      }
     }
   }
 
