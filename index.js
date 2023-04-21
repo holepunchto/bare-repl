@@ -5,8 +5,8 @@ const { writeFileSync, readFileSync } = require('@pearjs/fs')
 const EOL = process.platform === 'win32' ? '\r\n' : '\n'
 const { Crayon } = require('tiny-crayon')
 
-const logger = new Pipe('/tmp/debug')
-const debug = (e) => logger.write(e + EOL)
+// const logger = new Pipe('/tmp/debug')
+// const debug = (e) => logger.write(e + EOL)
 
 module.exports = class REPLServer {
   constructor () {
@@ -27,7 +27,6 @@ module.exports = class REPLServer {
     this._commands.set('.load', this._load)
     this._commands.set('.help', this._help)
 
-    this._session = ''
     this._writer = (e) => e
     this._log = (...e) => console.log(...e.map(this._writer))
     this._eval = null
@@ -130,12 +129,11 @@ module.exports = class REPLServer {
     } else {
       try {
         const result = await this.run(expr)
-        this._session += expr + EOL
         this._log(result)
       } catch (e) {
         this._log(e.name + ':', e.message)
       }
-      this._historyIndex++
+      // this._historyIndex++
       this._history.push(this._buffer)
     }
 
@@ -146,6 +144,7 @@ module.exports = class REPLServer {
   }
 
   _onUp () {
+    if (this._history.length === 0) { return }
     this._historyIndex--
     if (this._historyIndex < 0) {
       this._historyIndex = 0
@@ -156,6 +155,7 @@ module.exports = class REPLServer {
   }
 
   _onDown () {
+    if (this._history.length === 0) { return }
     this._historyIndex++
     if (this._historyIndex >= this._history.length) {
       this._historyIndex = this._history.length - 1
@@ -191,13 +191,12 @@ module.exports = class REPLServer {
   }
 
   async _save (path) {
-    return writeFileSync(path, this._session)
+    return writeFileSync(path, this._history.join('\n'))
   }
 
   async _load (path) {
-    const session = (await readFileSync(path)).toString()
-    this._session = session
-    for (const line of session.split(EOL)) {
+    const session = (await readFileSync(path)).toString().split('\n')
+    for (const line of session) {
       await this.run(line)
     }
   }
