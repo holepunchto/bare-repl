@@ -15,7 +15,7 @@
   "dependencies": {
     "@pearjs/fs": "github:holepunchto/pearjs-fs",
     "@pearjs/os": "^1.1.0",
-    "@pearjs/tty": "^1.0.0",
+    "@pearjs/tty": "github:holepunchto/pearjs-tty",
     "tiny-crayon": "^1.0.5"
   },
   "devDependencies": {
