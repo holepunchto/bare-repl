@@ -1,6 +1,6 @@
 const binding = require('./binding')
 const Pipe = require('@pearjs/pipe')
-const TTYPipe = require('@pearjs/tty')
+const TTY = require('@pearjs/tty')
 const { writeFileSync, readFileSync } = require('@pearjs/fs')
 const EOL = process.platform === 'win32' ? '\r\n' : '\n'
 const { Crayon } = require('tiny-crayon')
@@ -11,8 +11,12 @@ const debug = (e) => logger.write(e + EOL)
 module.exports = class REPLServer {
   constructor () {
     this._prompt = '> '
-    this._input = new TTYPipe(0)
-    this._output = new Pipe(1)
+
+    this._input = new TTY(0)
+    this._output = new TTY(1)
+    this._input.setMode(TTY.constants.MODE_RAW)
+    this._output.setMode(TTY.constants.MODE_NORMAL)
+
     this._context = {}
     this._contextProxy = new Proxy(this._context, {
       set (obj, prop, value) {
