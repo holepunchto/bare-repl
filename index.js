@@ -52,7 +52,7 @@ module.exports = class REPLServer {
     if (opts.useColors === false) {
       global.console.crayon = new Crayon({ isTTY: false })
     }
-
+    this._printWelcomeMessage()
     this._printPrompt()
     this._input.on('data', this._onData.bind(this))
     return this
@@ -217,6 +217,10 @@ module.exports = class REPLServer {
 
   _printPrompt () {
     this._output.write(this._prompt)
+  }
+
+  _printWelcomeMessage () {
+    this._output.write('Welcome to 🍐.js interactive shell\n')
   }
 
   async run (expr) {
