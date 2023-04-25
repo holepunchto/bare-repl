@@ -4,7 +4,7 @@
   "description": "Read-Evaluate-Print-Loop environment for Pear.js.",
   "main": "index.js",
   "bin": {
-    "pear-repl": "pear bin.js"
+    "pear-repl": "./bin.js"
   },
   "scripts": {
     "test": "pear test/index.test.js",
