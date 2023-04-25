@@ -1,12 +1,8 @@
 const binding = require('./binding')
-const Pipe = require('@pearjs/pipe')
 const TTY = require('@pearjs/tty')
 const { writeFileSync, readFileSync } = require('@pearjs/fs')
 const EOL = process.platform === 'win32' ? '\r\n' : '\n'
 const { Crayon } = require('tiny-crayon')
-
-const logger = new Pipe('/tmp/debug')
-const debug = (e) => logger.write(e + EOL)
 
 module.exports = class REPLServer {
   constructor () {
