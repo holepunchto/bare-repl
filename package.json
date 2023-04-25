@@ -1,8 +1,11 @@
 {
   "name": "pearjs-repl",
   "version": "1.0.0",
-  "description": "",
+  "description": "Read-Evaluate-Print-Loop environment for Pear.js.",
   "main": "index.js",
+  "bin": {
+    "pear-repl": "pear bin.js"
+  },
   "scripts": {
     "test": "pear test/index.test.js",
     "install": "pear-dev rebuild",
@@ -15,13 +18,23 @@
   "dependencies": {
     "@pearjs/fs": "github:holepunchto/pearjs-fs",
     "@pearjs/os": "^1.1.0",
-    "@pearjs/pipe": "^1.0.1",
-    "i": "^0.3.7",
-    "npm": "^9.6.4",
+    "@pearjs/tty": "github:holepunchto/pearjs-tty",
     "tiny-crayon": "^1.0.5"
   },
   "devDependencies": {
+    "@pearjs/pipe": "^1.0.1",
     "brittle": "^3.2.1",
     "standard": "^17.0.0"
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/holepunchto/pearjs-repl.git"
+  },
+  "bugs": {
+    "url": "https://github.com/holepunchto/pearjs-repl/issues"
+  },
+  "homepage": "https://github.com/holepunchto/pearjs-repl#readme"
 }
