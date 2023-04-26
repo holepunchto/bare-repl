@@ -3,9 +3,13 @@
   "version": "1.0.0",
   "description": "Read-Evaluate-Print-Loop environment for Pear.js.",
   "main": "index.js",
-  "bin": {
-    "pear-repl": "./bin.js"
-  },
+  "files": [
+    "index.js",
+    "binding.c",
+    "binding.js",
+    "CMakeLists.txt",
+    "prebuilds"
+  ],
   "scripts": {
     "test": "pear test/index.test.js",
     "install": "pear-dev rebuild",
