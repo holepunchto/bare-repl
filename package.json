@@ -1,5 +1,5 @@
 {
-  "name": "pearjs-repl",
+  "name": "@pearjs/repl",
   "version": "1.0.0",
   "description": "Read-Evaluate-Print-Loop environment for Pear.js.",
   "main": "index.js",
