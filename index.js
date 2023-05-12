@@ -1,8 +1,9 @@
-const binding = require('./binding')
-const TTY = require('@pearjs/tty')
-const { writeFileSync, readFileSync } = require('@pearjs/fs')
-const EOL = process.platform === 'win32' ? '\r\n' : '\n'
+const TTY = require('bare-tty')
+const { writeFileSync, readFileSync } = require('bare-fs')
 const { Crayon } = require('tiny-crayon')
+const binding = require('./binding')
+
+const EOL = process.platform === 'win32' ? '\r\n' : '\n'
 
 module.exports = class REPLServer {
   constructor () {

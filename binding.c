@@ -1,6 +1,6 @@
 #include <assert.h>
+#include <bare.h>
 #include <js.h>
-#include <pear.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -67,13 +67,11 @@ set_context (js_env_t *env, js_callback_info_t *info) {
 
 static js_value_t *
 init (js_env_t *env, js_value_t *exports) {
-
   {
     js_value_t *fn;
     js_create_function(env, "run", -1, run, NULL, &fn);
     js_set_named_property(env, exports, "run", fn);
   }
-
   {
     js_value_t *fn;
     js_create_function(env, "set_context", -1, set_context, NULL, &fn);
@@ -83,4 +81,4 @@ init (js_env_t *env, js_value_t *exports) {
   return exports;
 }
 
-PEAR_MODULE(pear_repl, init);
+BARE_MODULE(bare_repl, init);

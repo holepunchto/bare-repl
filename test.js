@@ -1,5 +1,5 @@
-const REPLServer = require('../index.js')
 const test = require('brittle')
+const REPLServer = require('.')
 
 test('context', async (t) => {
   const repl = new REPLServer()

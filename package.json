@@ -1,7 +1,7 @@
 {
-  "name": "@pearjs/repl",
+  "name": "bare-repl",
   "version": "1.0.0",
-  "description": "Read-Evaluate-Print-Loop environment for Pear.js.",
+  "description": "Read-Evaluate-Print-Loop environment for JavaScript",
   "main": "index.js",
   "files": [
     "index.js",
@@ -11,33 +11,28 @@
     "prebuilds"
   ],
   "scripts": {
-    "test": "pear test/index.test.js",
-    "install": "pear-dev rebuild",
-    "prebuild": "pear-dev prebuild",
-    "fix": "clang-format -i *.c && npx standard --fix"
+    "test": "standard && bare test.js",
+    "install": "bare-dev rebuild",
+    "prebuild": "bare-dev prebuild"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/holepunchto/bare-repl.git"
+  },
+  "author": "Holepunch",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/holepunchto/bare-repl/issues"
+  },
+  "homepage": "https://github.com/holepunchto/bare-repl#readme",
   "dependencies": {
-    "@pearjs/fs": "github:holepunchto/pearjs-fs",
-    "@pearjs/os": "^1.1.0",
-    "@pearjs/tty": "github:holepunchto/pearjs-tty",
+    "bare-fs": "^1.5.2",
+    "bare-os": "^1.1.0",
+    "bare-tty": "^1.0.3",
     "tiny-crayon": "^1.0.5"
   },
   "devDependencies": {
     "brittle": "^3.2.1",
     "standard": "^17.0.0"
-  },
-  "directories": {
-    "test": "test"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/holepunchto/pearjs-repl.git"
-  },
-  "bugs": {
-    "url": "https://github.com/holepunchto/pearjs-repl/issues"
-  },
-  "homepage": "https://github.com/holepunchto/pearjs-repl#readme"
+  }
 }

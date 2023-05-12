@@ -1,10 +1,16 @@
-# Pearjs-repl
+# bare-repl
 
-Read-Evaluate-Print-Loop environment for Pear.js.
+Read-Evaluate-Print-Loop environment for JavaScript.
 
-``` bash
-npm install -g @pearjs/repl
-pearjs-repl
+```
+npm i bare-repl
+```
+
+## Usage
+
+```sh
+npm i -g bare-repl
+bare-repl
 > "hello world"
 hello world
 > 1 + 1
@@ -15,24 +21,23 @@ undefined
 3
 ```
 
-
-``` javascript
-const REPLServer = require('../index.js')
+```js
+const REPLServer = require('bare-repl')
 const repl = new REPLServer()
 repl.start()
 ```
 
 ## API
 
-### start([options])
+#### `repl.start([options])`
 
-``` javascript
+```js
 repl.start()
 ```
 
 Options include:
 
-``` javascript
+```js
 {
   prompt: string, // sets repl prompt
   useColors: boolean, // toogles ANSI style codes to colorize the output
@@ -41,32 +46,36 @@ Options include:
   output: stream, // sets repl output stream
   eval: (cmd) => {} // sets eval function
 }
-``` 
+```
 
-### defineCommand(keyword, { help, action })
+#### `repl.defineCommand(keyword, { help, action })`
 
-Define a repl command keyword. 
+Define a repl command keyword.
 
-``` javascript
+```js
 repl.defineCommand('greet, { help: 'Greetings', action: () => console.log('hello') })
 ```
 
-``` bash
-pearjs-repl
+```sh
+bare-repl
 > .greet
-hello 
+hello
 ```
 
-## context
+#### `repl.context`
 
 Set execution context.
 
-``` javascript
+```js
 repl.context.f = () => console.log('Hello from context')
 ```
 
-``` bash
-pearjs-repl
+```js
+bare-repl
 > f()
 Hello from context
 ```
+
+## License
+
+Apache-2.0

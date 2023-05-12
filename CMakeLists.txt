@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(pear_repl C)
+project(bare_repl C)
 
-include(pear)
+include(bare)
 
-add_pear_module(pear_repl)
+add_bare_module(bare_repl)
 
 target_sources(
-  pear_repl
+  bare_repl
   PRIVATE
     binding.c
 )

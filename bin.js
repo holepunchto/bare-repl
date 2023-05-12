@@ -1,5 +1,5 @@
-#!/usr/bin/env pear
+#!/usr/bin/env bare
 
-const REPLServer = require('./index.js')
+const REPLServer = require('.')
 const repl = new REPLServer()
 repl.start()
