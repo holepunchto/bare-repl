@@ -11,17 +11,12 @@ module.exports = class REPLServer {
 
     this._input = new TTY(0)
     this._output = new TTY(1)
+
     this._input.setMode(TTY.constants.MODE_RAW)
     this._output.setMode(TTY.constants.MODE_NORMAL)
 
-    this._context = {}
-    this._contextProxy = new Proxy(this._context, {
-      set (obj, prop, value) {
-        binding.set_context(prop, value)
-        obj[prop] = value
-      }
-    })
-    binding.set_context('_', undefined)
+    this._context = global // TODO: Investigate per-session global context
+    this._context._ = undefined
 
     this._commands = new Map()
     this._commands.set('.save', this._save)
@@ -30,7 +25,7 @@ module.exports = class REPLServer {
 
     this._writer = (e) => e
     this._log = (...e) => console.log(...e.map(this._writer))
-    this._eval = null
+    this._eval = binding.run
     this._buffer = ''
     this._history = new History()
     this._historyIndex = 0
@@ -38,7 +33,7 @@ module.exports = class REPLServer {
   }
 
   get context () {
-    return this._contextProxy
+    return this._context
   }
 
   start (opts = {}) {
@@ -64,50 +59,26 @@ module.exports = class REPLServer {
   }
 
   async _onData (data) {
-    const pressed = key(data)
-    // console.log(data)
-    // return
-    switch (pressed) {
-      case ('Ctrl+C'): {
-        process.exit(0)
-        break
-      }
-      case ('Backspace'): {
-        await this._onBackspace()
-        break
-      }
-      case ('Enter'): {
-        await this._onEnter()
-        break
-      }
-      case ('Up'): {
-        await this._onUp()
-        break
-      }
-      case ('Down'): {
-        await this._onDown()
-        break
-      }
-      case ('Right'): {
-        await this._onRight()
-        break
-      }
-      case ('Left'): {
-        await this._onLeft()
-        break
-      }
-      case ('Home'): {
-        break
-      }
-      case ('End'): {
-        break
-      }
-      case ('PageUp'): {
-        break
-      }
-      case ('PageDown'): {
-        break
-      }
+    switch (key(data)) {
+      case 'Ctrl+C':
+        return process.exit(0)
+      case 'Backspace':
+        return this._onBackspace()
+      case 'Enter':
+        return this._onEnter()
+      case 'Up':
+        return this._onUp()
+      case 'Down':
+        return this._onDown()
+      case 'Right':
+        return this._onRight()
+      case 'Left':
+        return this._onLeft()
+      case 'Home':
+      case 'End':
+      case 'PageUp':
+      case 'PageDown':
+        return
       default: {
         const index = this._buffer.length + this._cursorOffset
         this._buffer = this._buffer.slice(0, index) + data.toString() + this._buffer.slice(index)
@@ -159,8 +130,8 @@ module.exports = class REPLServer {
 
   _onUp () {
     if ((this._historyIndex === 0) && (this._buffer.length > 0)) return // stops if there's something written in the buffer
-    if (this._history.getLenght() === 0) return // stops if history is empty
-    if ((this._history.getLenght() + this._historyIndex) <= 0) return // stops if reached end of history
+    if (this._history.length === 0) return // stops if history is empty
+    if ((this._history.length + this._historyIndex) <= 0) return // stops if reached end of history
 
     this._historyIndex--
     this._buffer = this._history.get(this._historyIndex)
@@ -203,11 +174,12 @@ module.exports = class REPLServer {
   }
 
   async _save (path) {
-    return writeFileSync(path, this._history.asSingleString())
+    return writeFileSync(path, this._history.toString())
   }
 
   async _load (path) {
     const session = (await readFileSync(path)).toString().split('\n')
+
     for (const line of session) {
       await this.run(line)
     }
@@ -221,19 +193,18 @@ module.exports = class REPLServer {
   }
 
   _printWelcomeMessage () {
-    this._output.write('Welcome to 🍐.js interactive shell\n')
+    this._output.write('Welcome to the Bare interactive shell\n')
   }
 
   async run (expr) {
-    const value = this.eval ? await this.eval(expr) : await binding.run(expr)
-    binding.set_context('_', value)
+    const value = this._eval(expr, this._context)
+    this._context._ = value
     return value
   }
 }
 
-function key (buff) {
-  const s = buff.toString('hex')
-  switch (s) {
+function key (buf) {
+  switch (buf.toString('hex')) {
     case '0d' : return 'Enter'
     case '7f' : return 'Backspace'
     case '1b5b41' : return 'Up'
@@ -250,22 +221,25 @@ function key (buff) {
 
 class History {
   constructor () {
-    this.arr = []
+    this.entries = []
   }
 
-  push (x) {
-    this.arr.push(x)
+  get length () {
+    return this.entries.length
   }
 
-  get (x) {
-    return this.arr[this.arr.length + x]
+  push (entry) {
+    this.entries.push(entry)
   }
 
-  getLenght () {
-    return this.arr.length
+  get (index) {
+    if (index < 0) index += this.length
+    if (index < 0 || index >= this.length) return null
+
+    return this.entries[index]
   }
 
-  asSingleString () {
-    return this.arr.join('\n')
+  toString () {
+    return this.entries.join('\n')
   }
 }
