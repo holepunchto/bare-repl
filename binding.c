@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <utf.h>
 #include <uv.h>
 
 static js_value_t *
@@ -23,7 +24,7 @@ bare_repl_run (js_env_t *env, js_callback_info_t *info) {
   err = js_get_value_string_utf8(env, argv[0], NULL, 0, &expr_len);
   assert(err == 0);
 
-  char *expr = malloc(expr_len + 1);
+  utf8_t *expr = malloc(expr_len + 1);
   err = js_get_value_string_utf8(env, argv[0], expr, expr_len + 1, NULL);
   assert(err == 0);
 
