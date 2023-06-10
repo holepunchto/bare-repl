@@ -29,6 +29,7 @@
     "bare-fs": "^1.5.2",
     "bare-os": "^1.1.0",
     "bare-tty": "^1.0.3",
+    "streamx": "^2.14.1",
     "tiny-crayon": "^1.0.5"
   },
   "devDependencies": {

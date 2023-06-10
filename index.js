@@ -1,6 +1,7 @@
 const TTY = require('bare-tty')
 const { writeFileSync, readFileSync } = require('bare-fs')
 const { Crayon } = require('tiny-crayon')
+const { Writable } = require('streamx')
 const binding = require('./binding')
 
 const EOL = process.platform === 'win32' ? '\r\n' : '\n'
@@ -100,6 +101,7 @@ module.exports = class REPLServer {
 
   async _onEnter () {
     this._output.write(EOL)
+    await Writable.drained(this._output)
     const expr = this._buffer.trim()
 
     if (expr[0] === '.') {
