@@ -25,10 +25,10 @@
   "homepage": "https://github.com/holepunchto/bare-repl#readme",
   "dependencies": {
     "bare-fs": "^1.5.2",
+    "bare-inspect": "^1.0.0",
     "bare-os": "^1.1.0",
-    "bare-tty": "^1.0.3",
-    "streamx": "^2.14.1",
-    "tiny-crayon": "^1.0.5"
+    "bare-tty": "^1.0.6",
+    "streamx": "^2.14.1"
   },
   "devDependencies": {
     "brittle": "^3.2.1",

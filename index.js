@@ -1,6 +1,6 @@
 const TTY = require('bare-tty')
+const inspect = require('bare-inspect')
 const { writeFileSync, readFileSync } = require('bare-fs')
-const { Crayon } = require('tiny-crayon')
 const { Writable } = require('streamx')
 const binding = require('./binding')
 
@@ -24,9 +24,8 @@ module.exports = class REPLServer {
     this._commands.set('.load', this._load)
     this._commands.set('.help', this._help)
 
-    this._writer = (e) => e
-    this._log = (...e) => console.log(...e.map(this._writer))
-    this._eval = binding.run
+    this._writer = defaultWriter
+    this._eval = defaultEval
     this._buffer = ''
     this._history = new History()
     this._historyIndex = 0
@@ -42,16 +41,10 @@ module.exports = class REPLServer {
     if (opts.writer) this._writer = opts.writer
     if (opts.eval) this._eval = opts.eval
     if (opts.input) this._input = opts.input
-    if (opts.output) {
-      this._output = opts.output
-      this._log = (e) => this._output.write(this._writer(e))
-    }
-    if (opts.useColors === false) {
-      global.console.crayon = new Crayon({ isTTY: false })
-    }
+    if (opts.output) this._output = opts.output
     this._printWelcomeMessage()
     this._printPrompt()
-    this._input.on('data', this._onData.bind(this))
+    this._input.on('data', this._ondata.bind(this))
     return this
   }
 
@@ -59,22 +52,26 @@ module.exports = class REPLServer {
     this._commands.set('.' + keyword, action)
   }
 
-  async _onData (data) {
+  _log (value) {
+    this._output.write(this._writer(value) + '\n')
+  }
+
+  async _ondata (data) {
     switch (key(data)) {
       case 'Ctrl+C':
         return process.exit(0)
       case 'Backspace':
-        return this._onBackspace()
+        return this._onbackspace()
       case 'Enter':
-        return this._onEnter()
+        return this._onenter()
       case 'Up':
-        return this._onUp()
+        return this._onup()
       case 'Down':
-        return this._onDown()
+        return this._ondown()
       case 'Right':
-        return this._onRight()
+        return this._onright()
       case 'Left':
-        return this._onLeft()
+        return this._onleft()
       case 'Home':
       case 'End':
       case 'PageUp':
@@ -88,7 +85,7 @@ module.exports = class REPLServer {
     }
   }
 
-  _onBackspace () {
+  _onbackspace () {
     if (Math.abs(this._cursorOffset) < this._buffer.length) { // if cursor is not at the beginning of the line
       this._output.write('\b')
       this._output.write(' ')
@@ -99,7 +96,7 @@ module.exports = class REPLServer {
     }
   }
 
-  async _onEnter () {
+  async _onenter () {
     this._output.write(EOL)
     await Writable.drained(this._output)
     const expr = this._buffer.trim()
@@ -118,8 +115,8 @@ module.exports = class REPLServer {
       try {
         const result = await this.run(expr)
         this._log(result)
-      } catch (e) {
-        this._log(e.name + ':', e.message)
+      } catch (err) {
+        this._log(err)
       }
       this._history.push(this._buffer)
     }
@@ -130,7 +127,7 @@ module.exports = class REPLServer {
     this._printPrompt()
   }
 
-  _onUp () {
+  _onup () {
     if ((this._historyIndex === 0) && (this._buffer.length > 0)) return // stops if there's something written in the buffer
     if (this._history.length === 0) return // stops if history is empty
     if ((this._history.length + this._historyIndex) <= 0) return // stops if reached end of history
@@ -141,7 +138,7 @@ module.exports = class REPLServer {
     this._reset()
   }
 
-  _onDown () {
+  _ondown () {
     if (this._historyIndex === 0) return // stops if beginning of history
 
     this._historyIndex++
@@ -150,14 +147,14 @@ module.exports = class REPLServer {
     this._reset()
   }
 
-  _onRight () {
+  _onright () {
     if (this._cursorOffset < 0) {
       this._cursorOffset++
       this._output.write(Buffer.from([0x1b, 0x5b, 0x31, 0x43]))
     }
   }
 
-  _onLeft () {
+  _onleft () {
     if (Math.abs(this._cursorOffset) < this._buffer.length) {
       this._cursorOffset--
       this._output.write('\b')
@@ -180,7 +177,7 @@ module.exports = class REPLServer {
   }
 
   async _load (path) {
-    const session = (await readFileSync(path)).toString().split('\n')
+    const session = (readFileSync(path)).toString().split('\n')
 
     for (const line of session) {
       await this.run(line)
@@ -244,4 +241,12 @@ class History {
   toString () {
     return this.entries.join('\n')
   }
+}
+
+function defaultWriter (value) {
+  return typeof value === 'string' ? value : inspect(value)
+}
+
+function defaultEval (expression, context) {
+  return binding.run(expression, context)
 }
