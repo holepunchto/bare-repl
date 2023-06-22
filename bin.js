@@ -1,5 +1,5 @@
 #!/usr/bin/env bare
 
-const REPLServer = require('.')
-const repl = new REPLServer()
+const REPL = require('.')
+const repl = new REPL()
 repl.start()

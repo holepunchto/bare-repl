@@ -1,4 +1,4 @@
-const TTY = require('bare-tty')
+const tty = require('bare-tty')
 const inspect = require('bare-inspect')
 const { writeFileSync, readFileSync } = require('bare-fs')
 const { Writable } = require('streamx')
@@ -6,15 +6,14 @@ const binding = require('./binding')
 
 const EOL = process.platform === 'win32' ? '\r\n' : '\n'
 
-module.exports = class REPLServer {
+module.exports = class REPL {
   constructor () {
     this._prompt = '> '
 
-    this._input = new TTY(0)
-    this._output = new TTY(1)
+    this._input = new tty.ReadStream(0)
+    this._input.setMode(tty.constants.MODE_RAW)
 
-    this._input.setMode(TTY.constants.MODE_RAW)
-    this._output.setMode(TTY.constants.MODE_NORMAL)
+    this._output = new tty.WriteStream(1)
 
     this._context = global // TODO: Investigate per-session global context
     this._context._ = undefined
@@ -42,9 +41,12 @@ module.exports = class REPLServer {
     if (opts.eval) this._eval = opts.eval
     if (opts.input) this._input = opts.input
     if (opts.output) this._output = opts.output
+
     this._printWelcomeMessage()
     this._printPrompt()
+
     this._input.on('data', this._ondata.bind(this))
+
     return this
   }
 
@@ -56,7 +58,7 @@ module.exports = class REPLServer {
     this._output.write(this._writer(value) + '\n')
   }
 
-  async _ondata (data) {
+  _ondata (data) {
     switch (key(data)) {
       case 'Ctrl+C':
         return process.exit(0)
