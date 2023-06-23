@@ -42,7 +42,6 @@ module.exports = class REPL {
     if (opts.input) this._input = opts.input
     if (opts.output) this._output = opts.output
 
-    this._printWelcomeMessage()
     this._printPrompt()
 
     this._input
@@ -265,10 +264,6 @@ module.exports = class REPL {
 
   _printPrompt () {
     this._output.write(this._prompt)
-  }
-
-  _printWelcomeMessage () {
-    this._output.write('Welcome to the Bare interactive shell\n')
   }
 
   async run (expr) {
