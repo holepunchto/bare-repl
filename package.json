@@ -28,7 +28,7 @@
     "bare-fs": "^1.5.2",
     "bare-inspect": "^1.0.0",
     "bare-os": "^1.1.0",
-    "bare-tty": "^2.0.0"
+    "bare-tty": "^2.0.1"
   },
   "devDependencies": {
     "brittle": "^3.2.1",

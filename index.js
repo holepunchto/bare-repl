@@ -93,9 +93,8 @@ module.exports = class REPL {
   }
 
   _onexit () {
-    this._output.write(EOL)
-
-    process.exit(0)
+    this._input.destroy()
+    this._output.end(EOL)
   }
 
   _onclear () {
