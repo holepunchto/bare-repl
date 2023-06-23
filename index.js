@@ -136,7 +136,7 @@ module.exports = class REPL {
     const expr = this._buffer.join('')
 
     if (expr[0] === '.') {
-      const [command, ...args] = expr.split(' ')
+      const [command, ...args] = expr.split(/\s+/)
 
       if (this._commands.has(command)) {
         try {
