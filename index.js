@@ -89,7 +89,13 @@ module.exports = class REPL {
         return this._onleft()
     }
 
-    const characters = [...key.name]
+    let characters
+
+    if (key.shift) {
+      characters = [...key.name.toUpperCase()]
+    } else {
+      characters = [...key.name]
+    }
 
     this._buffer.splice(this._cursor, 0, ...characters)
     this._cursor += characters.length
