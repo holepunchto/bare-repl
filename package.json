@@ -28,7 +28,8 @@
     "bare-fs": "^1.5.2",
     "bare-inspect": "^1.0.0",
     "bare-os": "^1.1.0",
-    "bare-tty": "^2.0.1"
+    "bare-tty": "^2.0.1",
+    "streamx": "^2.15.0"
   },
   "devDependencies": {
     "brittle": "^3.2.1",

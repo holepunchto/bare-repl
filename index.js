@@ -2,6 +2,7 @@ const tty = require('bare-tty')
 const inspect = require('bare-inspect')
 const fs = require('bare-fs')
 const ansiEscapes = require('bare-ansi-escapes')
+const { Writable } = require('streamx')
 const binding = require('./binding')
 
 const EOL = process.platform === 'win32' ? '\r\n' : '\n'
@@ -123,6 +124,8 @@ module.exports = class REPL {
 
   async _onreturn () {
     this._output.write(EOL)
+
+    await Writable.drained(this._output)
 
     const expr = this._buffer.join('')
 
