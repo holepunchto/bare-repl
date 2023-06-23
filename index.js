@@ -88,7 +88,11 @@ module.exports = class REPL {
         return this._onleft()
     }
 
-    this._buffer.splice(this._cursor++, 0, key.name)
+    const characters = [...key.name]
+
+    this._buffer.splice(this._cursor, 0, ...characters)
+    this._cursor += characters.length
+
     this._reset()
   }
 
