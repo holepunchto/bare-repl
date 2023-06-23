@@ -61,6 +61,8 @@ module.exports = class REPL {
   }
 
   _onkey (key) {
+    let characters
+
     switch (key.name) {
       case 'd':
         if (key.ctrl) return this._onexit()
@@ -87,14 +89,17 @@ module.exports = class REPL {
 
       case 'left':
         return this._onleft()
-    }
 
-    let characters
+      case 'space':
+        characters = [' ']
+        break
 
-    if (key.shift) {
-      characters = [...key.name.toUpperCase()]
-    } else {
-      characters = [...key.name]
+      default:
+        if (key.shift) {
+          characters = [...key.name.toUpperCase()]
+        } else {
+          characters = [...key.name]
+        }
     }
 
     this._buffer.splice(this._cursor, 0, ...characters)
@@ -129,11 +134,13 @@ module.exports = class REPL {
   }
 
   async _onreturn () {
+    const expr = this._buffer.join('')
+
+    if (expr === '') return this._onclear()
+
     this._output.write(EOL)
 
     await Writable.drained(this._output)
-
-    const expr = this._buffer.join('')
 
     if (expr[0] === '.') {
       const [command, ...args] = expr.split(/\s+/)
