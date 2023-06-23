@@ -66,10 +66,12 @@ module.exports = class REPL {
     switch (key.name) {
       case 'd':
         if (key.ctrl) return this._onexit()
+        characters = [key.shift ? 'D' : 'd']
         break
 
       case 'c':
         if (key.ctrl) return this._onclear()
+        characters = [key.shift ? 'C' : 'c']
         break
 
       case 'backspace':
@@ -89,6 +91,29 @@ module.exports = class REPL {
 
       case 'left':
         return this._onleft()
+
+      case 'f1':
+      case 'f2':
+      case 'f3':
+      case 'f4':
+      case 'f5':
+      case 'f6':
+      case 'f7':
+      case 'f8':
+      case 'f9':
+      case 'f10':
+      case 'f11':
+      case 'f12':
+      case 'clear':
+      case 'end':
+      case 'home':
+      case 'pageup':
+      case 'pagedown':
+      case 'insert':
+      case 'delete':
+      case 'tab':
+      case 'undefined':
+        return
 
       case 'space':
         characters = [' ']
