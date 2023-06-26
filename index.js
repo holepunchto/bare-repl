@@ -42,7 +42,7 @@ module.exports = class REPL {
     if (opts.input) this._input = opts.input
     if (opts.output) this._output = opts.output
 
-    this._printPrompt()
+    this._render()
 
     this._input
       .pipe(new ansiEscapes.KeyDecoder())
@@ -53,6 +53,18 @@ module.exports = class REPL {
 
   defineCommand (keyword, { help, action }) {
     this._commands.set('.' + keyword, action)
+  }
+
+  _render () {
+    this._output.write(
+      ansiEscapes.cursorPosition(0) +
+      ansiEscapes.eraseLine +
+
+      this._prompt +
+      this._buffer.join('') +
+
+      ansiEscapes.cursorPosition(this._prompt.length + this._cursor)
+    )
   }
 
   _log (value) {
@@ -129,7 +141,7 @@ module.exports = class REPL {
     this._buffer.splice(this._cursor, 0, ...characters)
     this._cursor += characters.length
 
-    this._reset()
+    this._render()
   }
 
   _onexit () {
@@ -144,16 +156,16 @@ module.exports = class REPL {
 
     this._output.write(EOL)
 
-    this._printPrompt()
+    this._render()
   }
 
   _onbackspace () {
     if (this._cursor) {
-      this._output.write('\b \b')
+      this._output.write(ansiEscapes.cursorBack(2))
 
       this._buffer.splice(--this._cursor, 1)
 
-      this._reset()
+      this._render()
     }
   }
 
@@ -190,7 +202,7 @@ module.exports = class REPL {
     this._cursor = 0
     this._history.cursor = 0
 
-    this._printPrompt()
+    this._render()
   }
 
   _onup () {
@@ -203,7 +215,7 @@ module.exports = class REPL {
     this._buffer = [...this._history.get(this._history.cursor)]
     this._cursor = this._buffer.length
 
-    this._reset()
+    this._render()
   }
 
   _ondown () {
@@ -216,34 +228,20 @@ module.exports = class REPL {
       : [...this._history.get(this._history.cursor)]
     this._cursor = this._buffer.length
 
-    this._reset()
+    this._render()
   }
 
   _onright () {
     if (this._cursor < this._buffer.length) {
       this._cursor++
-      this._output.write(Buffer.from([0x1b, 0x5b, 0x31, 0x43]))
+      this._output.write(ansiEscapes.cursorForward())
     }
   }
 
   _onleft () {
     if (this._cursor) {
       this._cursor--
-      this._output.write('\b')
-    }
-  }
-
-  _reset () {
-    this._output.write(Buffer.from([0x20, 0x1b, 0x5b, 0x31, 0x47])) // move cursor to beginning of line
-    this._output.write(Buffer.from([0x20, 0x1b, 0x5b, 0x32, 0x4b])) // delete until the end of the line
-    this._output.write(Buffer.from([0x20, 0x1b, 0x5b, 0x31, 0x47])) // after deleting, cursor moves 1 column to the right, go back
-
-    this._printPrompt()
-
-    this._output.write(this._buffer.join(''))
-
-    for (let i = 0, n = this._buffer.length - this._cursor; i < n; i++) {
-      this._output.write('\b')
+      this._output.write(ansiEscapes.cursorBack())
     }
   }
 
@@ -260,10 +258,6 @@ module.exports = class REPL {
   }
 
   _help () {
-  }
-
-  _printPrompt () {
-    this._output.write(this._prompt)
   }
 
   async run (expr) {

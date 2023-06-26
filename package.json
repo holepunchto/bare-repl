@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/holepunchto/bare-repl#readme",
   "dependencies": {
-    "bare-ansi-escapes": "^1.0.0",
+    "bare-ansi-escapes": "^1.1.0",
     "bare-fs": "^1.5.2",
     "bare-inspect": "^1.0.0",
     "bare-os": "^1.1.0",
