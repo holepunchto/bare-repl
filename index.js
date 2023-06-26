@@ -1,3 +1,4 @@
+const EventEmitter = require('events')
 const tty = require('bare-tty')
 const inspect = require('bare-inspect')
 const fs = require('bare-fs')
@@ -7,8 +8,10 @@ const binding = require('./binding')
 
 const EOL = process.platform === 'win32' ? '\r\n' : '\n'
 
-module.exports = class REPL {
+module.exports = class REPL extends EventEmitter {
   constructor () {
+    super()
+
     this._prompt = '> '
 
     this._input = new tty.ReadStream(0)
@@ -16,13 +19,17 @@ module.exports = class REPL {
 
     this._output = new tty.WriteStream(1)
 
+    this._idle = true
+    this._exited = false
+
     this._context = global // TODO: Investigate per-session global context
     this._context._ = undefined
 
     this._commands = new Map()
-    this._commands.set('.save', this._save)
-    this._commands.set('.load', this._load)
-    this._commands.set('.help', this._help)
+    this._commands.set('.exit', this._onexit)
+    this._commands.set('.save', this._onsave)
+    this._commands.set('.load', this._onload)
+    this._commands.set('.help', this._onhelp)
 
     this._writer = defaultWriter
     this._eval = defaultEval
@@ -56,6 +63,8 @@ module.exports = class REPL {
   }
 
   _render () {
+    if (this._exited) return
+
     this._output.write(
       ansiEscapes.cursorPosition(0) +
       ansiEscapes.eraseLine +
@@ -145,8 +154,12 @@ module.exports = class REPL {
   }
 
   _onexit () {
+    this._exited = true
     this._input.destroy()
-    this._output.end(EOL)
+    if (this._idle) this._output.write(EOL)
+    this._output
+      .once('close', () => this.emit('exit'))
+      .end()
   }
 
   _onclear () {
@@ -178,6 +191,8 @@ module.exports = class REPL {
 
     await Writable.drained(this._output)
 
+    this._idle = false
+
     if (expr[0] === '.') {
       const [command, ...args] = expr.split(/\s+/)
 
@@ -194,9 +209,10 @@ module.exports = class REPL {
       } catch (err) {
         this._log(err)
       }
-
-      this._history.push(expr)
     }
+
+    this._idle = true
+    this._history.push(expr)
 
     this._buffer = []
     this._cursor = 0
@@ -245,11 +261,11 @@ module.exports = class REPL {
     }
   }
 
-  async _save (path) {
-    return fs.writeFileSync(path, this._history.toString())
+  _onsave (path) {
+    fs.writeFileSync(path, this._history.toString())
   }
 
-  async _load (path) {
+  async _onload (path) {
     const session = (fs.readFileSync(path)).toString().split('\n')
 
     for (const line of session) {
@@ -257,7 +273,7 @@ module.exports = class REPL {
     }
   }
 
-  _help () {
+  _onhelp () {
   }
 
   async run (expr) {

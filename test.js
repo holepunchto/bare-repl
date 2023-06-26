@@ -1,8 +1,8 @@
 const test = require('brittle')
-const REPLServer = require('.')
+const REPL = require('.')
 
 test('context', async (t) => {
-  const repl = new REPLServer()
+  const repl = new REPL()
   repl.context.bar = 1
   repl.context.bar = 2
   const result = await repl.run('bar')
@@ -14,7 +14,7 @@ test('context', async (t) => {
 })
 
 test('basic run', async (t) => {
-  const repl = new REPLServer()
+  const repl = new REPL()
   const add = await repl.run('1 + 1')
   const a = await repl.run('let a = "a"; a')
   t.is(add, 2)
@@ -22,7 +22,7 @@ test('basic run', async (t) => {
 })
 
 test('underscore', async (t) => {
-  const repl = new REPLServer()
+  const repl = new REPL()
   t.is(await repl.run('_'), undefined)
   await repl.run('1 + 1')
   t.is(await repl.run('_'), 2)
