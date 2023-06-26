@@ -1,7 +1,6 @@
 const EventEmitter = require('events')
 const tty = require('bare-tty')
 const inspect = require('bare-inspect')
-const fs = require('bare-fs')
 const ansiEscapes = require('bare-ansi-escapes')
 const { Writable } = require('streamx')
 const binding = require('./binding')
@@ -25,17 +24,16 @@ module.exports = class REPL extends EventEmitter {
     this._context = global // TODO: Investigate per-session global context
     this._context._ = undefined
 
-    this._commands = new Map()
-    this._commands.set('.exit', this._onexit)
-    this._commands.set('.save', this._onsave)
-    this._commands.set('.load', this._onload)
-    this._commands.set('.help', this._onhelp)
+    this._commands = Object.create(null)
 
     this._writer = defaultWriter
     this._eval = defaultEval
     this._buffer = []
     this._cursor = 0
     this._history = new History()
+
+    this.defineCommand('help', { help: 'Print this help message', action: this._onhelp })
+    this.defineCommand('exit', { help: 'Exit the REPL', action: this._onexit })
   }
 
   get context () {
@@ -58,8 +56,14 @@ module.exports = class REPL extends EventEmitter {
     return this
   }
 
+  async run (expr) {
+    const value = this._eval(expr, this._context)
+    this._context._ = value
+    return value
+  }
+
   defineCommand (keyword, { help, action }) {
-    this._commands.set('.' + keyword, action)
+    this._commands[keyword] = { help, action }
   }
 
   _render () {
@@ -194,14 +198,16 @@ module.exports = class REPL extends EventEmitter {
     this._idle = false
 
     if (expr[0] === '.') {
-      const [command, ...args] = expr.split(/\s+/)
+      const [command, ...args] = expr.substring(1).split(/\s+/)
 
-      if (this._commands.has(command)) {
+      if (command in this._commands) {
         try {
-          await this._commands.get(command).apply(this, ...args)
+          await this._commands[command].action.apply(this, ...args)
         } catch (err) {
           this._log(err)
         }
+      } else {
+        this._log('Invalid REPL keyword')
       }
     } else {
       try {
@@ -261,25 +267,7 @@ module.exports = class REPL extends EventEmitter {
     }
   }
 
-  _onsave (path) {
-    fs.writeFileSync(path, this._history.toString())
-  }
-
-  async _onload (path) {
-    const session = (fs.readFileSync(path)).toString().split('\n')
-
-    for (const line of session) {
-      await this.run(line)
-    }
-  }
-
   _onhelp () {
-  }
-
-  async run (expr) {
-    const value = this._eval(expr, this._context)
-    this._context._ = value
-    return value
   }
 }
 
@@ -302,10 +290,6 @@ class History {
     if (index < 0 || index >= this.length) return null
 
     return this.entries[index]
-  }
-
-  toString () {
-    return this.entries.join('\n')
   }
 }
 
