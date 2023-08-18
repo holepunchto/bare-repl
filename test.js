@@ -1,31 +1,31 @@
 const test = require('brittle')
-const REPL = require('.')
+const { PassThrough } = require('streamx')
+const { start } = require('.')
 
-test('context', async (t) => {
-  const repl = new REPL()
-  repl.context.bar = 1
-  repl.context.bar = 2
-  const result = await repl.run('bar')
-  t.is(result, repl.context.bar)
-  t.is(result, 2)
+test('basic', async (t) => {
+  t.plan(2)
 
-  repl.context.buffer = Buffer.alloc(10)
-  t.is((await repl.run('buffer')).length, 10)
-})
+  const input = new PassThrough()
+  const output = new PassThrough()
 
-test('basic run', async (t) => {
-  const repl = new REPL()
-  const add = await repl.run('1 + 1')
-  const a = await repl.run('let a = "a"; a')
-  t.is(add, 2)
-  t.is(a, 'a')
-})
+  const repl = start({ input, output })
 
-test('underscore', async (t) => {
-  const repl = new REPL()
-  t.is(await repl.run('_'), undefined)
-  await repl.run('1 + 1')
-  t.is(await repl.run('_'), 2)
-  await repl.run('Buffer.alloc(10)')
-  t.is((await repl.run('_')).length, 10)
+  let out = ''
+
+  output.on('data', (data) => (out += data))
+
+  input.write('1 + 2')
+  input.write('\r')
+
+  repl
+    .once('line', (line) => {
+      t.is(line, '1 + 2')
+
+      input.write('.exit')
+      input.write('\r')
+    })
+    .on('close', async () => {
+      t.comment(out.trim())
+      t.pass('closed')
+    })
 })

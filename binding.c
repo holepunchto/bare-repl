@@ -9,7 +9,7 @@
 #include <uv.h>
 
 static js_value_t *
-bare_repl_run (js_env_t *env, js_callback_info_t *info) {
+bare_repl_eval (js_env_t *env, js_callback_info_t *info) {
   int err;
 
   js_value_t *argv[2];
@@ -44,8 +44,8 @@ static js_value_t *
 init (js_env_t *env, js_value_t *exports) {
   {
     js_value_t *fn;
-    js_create_function(env, "run", -1, bare_repl_run, NULL, &fn);
-    js_set_named_property(env, exports, "run", fn);
+    js_create_function(env, "eval", -1, bare_repl_eval, NULL, &fn);
+    js_set_named_property(env, exports, "eval", fn);
   }
 
   return exports;
