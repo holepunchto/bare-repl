@@ -22,18 +22,13 @@ undefined
 ```
 
 ```js
-const REPLServer = require('bare-repl')
-const repl = new REPLServer()
-repl.start()
+const { start } = require('bare-repl')
+const repl = start()
 ```
 
 ## API
 
-#### `repl.start([options])`
-
-```js
-repl.start()
-```
+#### `const repl = start([options])`
 
 Options include:
 
