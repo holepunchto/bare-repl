@@ -35,7 +35,7 @@ bare_repl_eval (js_env_t *env, js_callback_info_t *info) {
   free(expr);
 
   js_value_t *result;
-  err = js_run_script(env, NULL, 0, 0, script, &result);
+  err = js_run_script(env, "<repl>", -1, 0, script, &result);
 
   return err == 0 ? result : NULL;
 }
