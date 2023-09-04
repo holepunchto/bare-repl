@@ -1,3 +1,5 @@
+const Module = require('module')
+const path = require('path')
 const { Writable } = require('streamx')
 const Readline = require('bare-readline')
 const tty = require('bare-tty')
@@ -26,6 +28,7 @@ exports.REPLServer = class REPLServer extends Readline {
 
     this.context = global // TODO: Investigate per-session global context
     this.context._ = undefined
+    this.context.require = Module.createRequire(path.join(process.cwd(), '<repl>'))
 
     this.commands = Object.create(null)
 
