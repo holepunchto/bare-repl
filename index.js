@@ -46,7 +46,7 @@ exports.REPLServer = class REPLServer extends Readline {
     this.defineCommand('exit', { help: 'Exit the REPL', action: onexit })
 
     const onclose = () => {
-      if (!exited) this.write(Readline.constants.EOL)
+      if (!exited) this.output.write(Readline.constants.EOL)
 
       this.input.push(null)
       this.output.end()
@@ -66,18 +66,18 @@ exports.REPLServer = class REPLServer extends Readline {
           try {
             await this.commands[command].action.apply(this, ...args)
           } catch (err) {
-            this.write(err + Readline.constants.EOL)
+            this.output.write(err + Readline.constants.EOL)
           }
         } else {
-          this.write('Invalid REPL keyword' + Readline.constants.EOL)
+          this.output.write('Invalid REPL keyword' + Readline.constants.EOL)
         }
       } else {
         try {
           const value = this.writer(this.eval(expr, this._context))
           this.context._ = value
-          this.write(value + Readline.constants.EOL)
+          this.output.write(value + Readline.constants.EOL)
         } catch (err) {
-          this.write(err + Readline.constants.EOL)
+          this.output.write(err + Readline.constants.EOL)
         }
       }
 
