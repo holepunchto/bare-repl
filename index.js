@@ -29,7 +29,7 @@ exports.REPLServer = class REPLServer extends Readline {
 
     this.context = global // TODO: Investigate per-session global context
     this.context._ = undefined
-    this.context.require = Module.createRequire(path.join(os.cwd(), '<repl>'))
+    this.context.require = Module.createRequire(path.join(os.cwd(), '<repl>'), opts.require)
 
     this.commands = Object.create(null)
 
