@@ -25,7 +25,7 @@
   "homepage": "https://github.com/holepunchto/bare-repl#readme",
   "dependencies": {
     "bare-inspect": "^1.0.0",
-    "bare-module": "^2.0.0",
+    "bare-module": "^3.0.2",
     "bare-os": "^2.0.0",
     "bare-path": "^2.0.0",
     "bare-readline": "^0.1.0",
