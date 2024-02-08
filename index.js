@@ -3,6 +3,7 @@ const Module = require('bare-module')
 const path = require('bare-path')
 const os = require('bare-os')
 const Readline = require('bare-readline')
+const Pipe = require('bare-pipe')
 const tty = require('bare-tty')
 const inspect = require('bare-inspect')
 const binding = require('./binding')
@@ -18,8 +19,8 @@ exports.REPLServer = class REPLServer extends Readline {
     super({
       ...opts,
 
-      input: opts.input || new tty.ReadStream(0),
-      output: opts.output || new tty.WriteStream(1)
+      input: opts.input || (tty.isTTY(0) ? new tty.ReadStream(0) : new Pipe(0)),
+      output: opts.output || (tty.isTTY(1) ? new tty.WriteStream(1) : new Pipe(1))
     })
 
     this.eval = opts.eval || defaultEval
