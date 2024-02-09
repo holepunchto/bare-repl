@@ -10,9 +10,7 @@
     "CMakeLists.txt",
     "prebuilds"
   ],
-  "addon": {
-    "target": "bare_repl"
-  },
+  "addon": true,
   "scripts": {
     "test": "standard && bare test.js"
   },
