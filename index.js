@@ -106,5 +106,5 @@ function defaultWriter (colors) {
 }
 
 function defaultEval (expression, context) {
-  return binding.eval('(' + expression + ')', context)
+  return binding.eval(expression, context)
 }
