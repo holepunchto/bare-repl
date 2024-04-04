@@ -24,7 +24,7 @@ exports.REPLServer = class REPLServer extends Readline {
     })
 
     this.eval = opts.eval || defaultEval
-    this.writer = opts.writer || defaultWriter
+    this.writer = opts.writer || defaultWriter(this.input.isTTY)
 
     if (this.input.isTTY) this.input.setMode(tty.constants.MODE_RAW)
 
@@ -99,10 +99,12 @@ exports.REPLServer = class REPLServer extends Readline {
   }
 }
 
-function defaultWriter (value) {
-  return typeof value === 'string' ? value : inspect(value, { colors: true })
+function defaultWriter (colors) {
+  return function defaultWriter (value) {
+    return typeof value === 'string' ? value : inspect(value, { colors })
+  }
 }
 
 function defaultEval (expression, context) {
-  return binding.eval(expression, context)
+  return binding.eval('(' + expression + ')', context)
 }
