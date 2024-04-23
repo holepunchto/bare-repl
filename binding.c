@@ -41,7 +41,7 @@ bare_repl_eval (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-init (js_env_t *env, js_value_t *exports) {
+bare_repl_exports (js_env_t *env, js_value_t *exports) {
   {
     js_value_t *fn;
     js_create_function(env, "eval", -1, bare_repl_eval, NULL, &fn);
@@ -51,4 +51,4 @@ init (js_env_t *env, js_value_t *exports) {
   return exports;
 }
 
-BARE_MODULE(bare_repl, init);
+BARE_MODULE(bare_repl, bare_repl_exports);

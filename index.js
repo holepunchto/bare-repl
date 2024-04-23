@@ -1,4 +1,4 @@
-const { Writable } = require('streamx')
+const { Writable } = require('bare-stream')
 const Module = require('bare-module')
 const path = require('bare-path')
 const os = require('bare-os')
