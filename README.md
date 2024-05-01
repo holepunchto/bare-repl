@@ -8,19 +8,6 @@ npm i bare-repl
 
 ## Usage
 
-```sh
-npm i -g bare-repl
-bare-repl
-> "hello world"
-hello world
-> 1 + 1
-2
-> const bar = 1; const foo = 2;
-undefined
-> bar + foo
-3
-```
-
 ```js
 const { start } = require('bare-repl')
 const repl = start()
