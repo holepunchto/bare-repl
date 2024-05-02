@@ -101,7 +101,7 @@ exports.REPLServer = class REPLServer extends Readline {
 
 function defaultWriter (colors) {
   return function defaultWriter (value) {
-    return typeof value === 'string' ? value : inspect(value, { colors })
+    return inspect(value, { colors })
   }
 }
 
