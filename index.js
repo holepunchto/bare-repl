@@ -51,9 +51,10 @@ exports.REPLServer = class REPLServer extends Readline {
       if (!exited) this.output.write(Readline.constants.EOL)
 
       this.input.push(null)
-      this.output.end()
 
-      this.emit('exit') // For Node.js compatibility
+      this.output
+        .on('close', () => this.emit('exit'))
+        .end()
     }
 
     const ondata = async (line) => {
