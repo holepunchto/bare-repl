@@ -67,7 +67,7 @@ exports.REPLServer = class REPLServer extends Readline {
 
         if (command in this.commands) {
           try {
-            await this.commands[command].action.apply(this, [...args])
+            await this.commands[command].action.call(this, ...args)
           } catch (err) {
             this.output.write(err + Readline.constants.EOL)
           }
