@@ -1,8 +1,11 @@
 {
   "name": "bare-repl",
-  "version": "3.0.2",
+  "version": "4.0.0-0",
   "description": "Read-Evaluate-Print-Loop environment for JavaScript",
-  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package": "./package.json"
+  },
   "files": [
     "index.js",
     "binding.c",
@@ -29,10 +32,10 @@
     "bare-module": "^4.0.0",
     "bare-os": "^3.0.1",
     "bare-path": "^3.0.0",
-    "bare-pipe": "^3.1.0",
+    "bare-pipe": "^4.0.0",
     "bare-readline": "^1.0.0",
     "bare-stream": "^2.0.0",
-    "bare-tty": "^4.0.0"
+    "bare-tty": "^5.0.0"
   },
   "devDependencies": {
     "brittle": "^3.2.1",
