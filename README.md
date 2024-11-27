@@ -35,7 +35,10 @@ Options include:
 Define a repl command keyword.
 
 ```js
-repl.defineCommand('greet', { help: 'Greetings', action: () => console.log('hello') })
+repl.defineCommand('greet', {
+  help: 'Greetings',
+  action: () => console.log('hello')
+})
 ```
 
 ```sh

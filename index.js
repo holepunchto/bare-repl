@@ -8,19 +8,20 @@ const tty = require('bare-tty')
 const inspect = require('bare-inspect')
 const binding = require('./binding')
 
-exports.start = function start (opts) {
+exports.start = function start(opts) {
   if (typeof opts === 'string') opts = { prompt: opts }
 
   return new exports.REPLServer(opts)
 }
 
 exports.REPLServer = class REPLServer extends Readline {
-  constructor (opts = {}) {
+  constructor(opts = {}) {
     super({
       ...opts,
 
       input: opts.input || (tty.isTTY(0) ? new tty.ReadStream(0) : new Pipe(0)),
-      output: opts.output || (tty.isTTY(1) ? new tty.WriteStream(1) : new Pipe(1))
+      output:
+        opts.output || (tty.isTTY(1) ? new tty.WriteStream(1) : new Pipe(1))
     })
 
     this.eval = opts.eval || defaultEval
@@ -30,7 +31,10 @@ exports.REPLServer = class REPLServer extends Readline {
 
     this.context = global // TODO: Investigate per-session global context
     this.context._ = undefined
-    this.context.require = Module.createRequire(path.join(os.cwd(), '/'), opts.require)
+    this.context.require = Module.createRequire(
+      path.join(os.cwd(), '/'),
+      opts.require
+    )
 
     this.commands = Object.create(null)
 
@@ -44,7 +48,10 @@ exports.REPLServer = class REPLServer extends Readline {
       this.close()
     }
 
-    this.defineCommand('help', { help: 'Print this help message', action: onhelp })
+    this.defineCommand('help', {
+      help: 'Print this help message',
+      action: onhelp
+    })
     this.defineCommand('exit', { help: 'Exit the REPL', action: onexit })
 
     const onclose = () => {
@@ -52,9 +59,7 @@ exports.REPLServer = class REPLServer extends Readline {
 
       this.input.push(null)
 
-      this.output
-        .on('close', () => this.emit('exit'))
-        .end()
+      this.output.on('close', () => this.emit('exit')).end()
     }
 
     const ondata = async (line) => {
@@ -89,23 +94,20 @@ exports.REPLServer = class REPLServer extends Readline {
       this.prompt()
     }
 
-    this
-      .on('data', ondata)
-      .on('close', onclose)
-      .prompt()
+    this.on('data', ondata).on('close', onclose).prompt()
   }
 
-  defineCommand (keyword, { help, action }) {
+  defineCommand(keyword, { help, action }) {
     this.commands[keyword] = { help, action }
   }
 }
 
-function defaultWriter (colors) {
-  return function defaultWriter (value) {
+function defaultWriter(colors) {
+  return function defaultWriter(value) {
     return inspect(value, { colors })
   }
 }
 
-function defaultEval (expression, context) {
+function defaultEval(expression, context) {
   return binding.eval(expression, context)
 }
