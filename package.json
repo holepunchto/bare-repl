@@ -29,7 +29,7 @@
   "homepage": "https://github.com/holepunchto/bare-repl#readme",
   "dependencies": {
     "bare-inspect": "^3.0.0",
-    "bare-module": "^4.0.0",
+    "bare-module": "^5.0.0",
     "bare-os": "^3.0.1",
     "bare-path": "^3.0.0",
     "bare-pipe": "^4.0.0",
