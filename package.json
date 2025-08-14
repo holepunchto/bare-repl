@@ -1,6 +1,6 @@
 {
   "name": "bare-repl",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Read-Evaluate-Print-Loop environment for JavaScript",
   "exports": {
     ".": "./index.js",
