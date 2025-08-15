@@ -81,9 +81,25 @@ exports.REPLServer = class REPLServer extends Readline {
         }
       } else {
         try {
-          const value = this.writer(this.eval(expr, this._context))
+          const evalResult = await this.eval(
+            expr,
+            this._context,
+            {},
+            (e, result) => {
+              if (e) {
+                throw e
+              }
+
+              return result
+            }
+          )
+
+          const value = this.writer(evalResult)
           this.context._ = value
-          this.output.write(value + Readline.constants.EOL)
+
+          if (value !== undefined) {
+            this.output.write(value + Readline.constants.EOL)
+          }
         } catch (err) {
           this.output.write(err + Readline.constants.EOL)
         }
@@ -108,6 +124,11 @@ function defaultWriter(colors) {
   }
 }
 
-function defaultEval(expression, context) {
-  return binding.eval(expression, context)
+function defaultEval(expression, context, filename, callback) {
+  try {
+    const result = binding.eval(expression, context)
+    callback(null, result)
+  } catch (e) {
+    callback(e)
+  }
 }
