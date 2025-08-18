@@ -14,6 +14,8 @@ exports.start = function start(opts) {
   return new exports.REPLServer(opts)
 }
 
+let nextIdentifier = 0
+
 exports.REPLServer = class REPLServer extends Readline {
   constructor(opts = {}) {
     super({
@@ -80,18 +82,23 @@ exports.REPLServer = class REPLServer extends Readline {
           this.output.write('Invalid REPL keyword' + Readline.constants.EOL)
         }
       } else {
-        try {
-          const value = this.writer(this.eval(expr, this._context))
-          this.context._ = value
-          this.output.write(value + Readline.constants.EOL)
-        } catch (err) {
-          this.output.write(err + Readline.constants.EOL)
-        }
+        this.eval(
+          expr,
+          this._context,
+          `REPL${++nextIdentifier}`,
+          (err, value) => {
+            this.context._ = value
+
+            this.output.write(
+              this.writer(err || value) + Readline.constants.EOL
+            )
+
+            if (this.destroyed) return
+
+            this.prompt()
+          }
+        )
       }
-
-      if (this.destroyed) return
-
-      this.prompt()
     }
 
     this.on('data', ondata).on('close', onclose).prompt()
@@ -108,6 +115,10 @@ function defaultWriter(colors) {
   }
 }
 
-function defaultEval(expression, context) {
-  return binding.eval(expression, context)
+function defaultEval(expression, context, resource, cb) {
+  try {
+    cb(null, binding.eval(expression, context))
+  } catch (err) {
+    cb(err)
+  }
 }
