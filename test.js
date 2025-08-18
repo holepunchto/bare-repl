@@ -57,3 +57,31 @@ test('object literal', async (t) => {
       t.pass('closed')
     })
 })
+
+test('async', async (t) => {
+  t.plan(2)
+
+  const input = new PassThrough()
+  const output = new PassThrough()
+
+  const repl = start({ input, output })
+
+  let out = ''
+
+  output.on('data', (data) => (out += data))
+
+  input.write('await Promise.resolve(1)')
+  input.write('\r')
+
+  repl
+    .once('line', (line) => {
+      t.is(line, 'await Promise.resolve(1)')
+
+      input.write('.exit')
+      input.write('\r')
+    })
+    .on('close', async () => {
+      t.comment(out.trim())
+      t.pass('closed')
+    })
+})
