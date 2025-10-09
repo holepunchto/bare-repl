@@ -117,11 +117,12 @@ function defaultWriter(colors) {
 
 function defaultEval(expression, context, resource, cb) {
   let err = null
+  let value
   try {
-    binding.eval(expression, context)
+    value = binding.eval(expression, context)
   } catch (e) {
     err = e
   }
 
-  cb(err)
+  cb(err, value)
 }
