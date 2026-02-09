@@ -22,8 +22,7 @@ exports.REPLServer = class REPLServer extends Readline {
       ...opts,
 
       input: opts.input || (tty.isTTY(0) ? new tty.ReadStream(0) : new Pipe(0)),
-      output:
-        opts.output || (tty.isTTY(1) ? new tty.WriteStream(1) : new Pipe(1))
+      output: opts.output || (tty.isTTY(1) ? new tty.WriteStream(1) : new Pipe(1))
     })
 
     this.eval = opts.eval || defaultEval
@@ -33,10 +32,7 @@ exports.REPLServer = class REPLServer extends Readline {
 
     this.context = global // TODO: Investigate per-session global context
     this.context._ = undefined
-    this.context.require = Module.createRequire(
-      path.join(os.cwd(), '/'),
-      opts.require
-    )
+    this.context.require = Module.createRequire(path.join(os.cwd(), '/'), opts.require)
 
     this.commands = Object.create(null)
 
@@ -82,22 +78,15 @@ exports.REPLServer = class REPLServer extends Readline {
           this.output.write('Invalid REPL keyword' + Readline.constants.EOL)
         }
       } else {
-        this.eval(
-          expr,
-          this._context,
-          `REPL${++nextIdentifier}`,
-          (err, value) => {
-            this.context._ = value
+        this.eval(expr, this._context, `REPL${++nextIdentifier}`, (err, value) => {
+          this.context._ = value
 
-            this.output.write(
-              this.writer(err || value) + Readline.constants.EOL
-            )
+          this.output.write(this.writer(err || value) + Readline.constants.EOL)
 
-            if (this.destroyed) return
+          if (this.destroyed) return
 
-            this.prompt()
-          }
-        )
+          this.prompt()
+        })
       }
     }
 
