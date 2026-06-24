@@ -26,7 +26,8 @@ Options include:
   writer: (message) => message, // converts repl output
   input: stream, // sets repl input stream
   output: stream, // sets repl output stream
-  eval: (cmd) => {} // sets eval function
+  eval: (cmd) => {}, // sets eval function
+  useGlobal: boolean // evaluates against the shared global instead of an isolated context per session
 }
 ```
 

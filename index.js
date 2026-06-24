@@ -25,76 +25,114 @@ exports.REPLServer = class REPLServer extends Readline {
       output: opts.output || (tty.isTTY(1) ? new tty.WriteStream(1) : new Pipe(1))
     })
 
-    this.eval = opts.eval || defaultEval
-    this.writer = opts.writer || defaultWriter(this.input.isTTY)
+    this._useGlobal = opts.useGlobal === true
+    this._eval = opts.eval || defaultEval
+    this._writer = opts.writer || defaultWriter(this.input.isTTY)
 
     if (this.input.isTTY) this.input.setMode(tty.constants.MODE_RAW)
 
-    this.context = global // TODO: Investigate per-session global context
-    this.context._ = undefined
-    this.context.require = Module.createRequire(path.join(os.cwd(), '/'), opts.require)
+    if (this._useGlobal) {
+      this._context = global
+    } else {
+      binding.createContext(this)
 
-    this.commands = Object.create(null)
+      this._context = binding.global(this)
 
-    let exited = false
+      const context = Object.getOwnPropertyNames(this._context)
 
-    const onhelp = () => {}
+      // A fresh context only carries the JavaScript intrinsics, so the host
+      // globals are bridged across.
+      for (const name of Object.getOwnPropertyNames(global)) {
+        if (name === 'global' || name === 'globalThis') continue
+        if (context.includes(name)) continue
 
-    const onexit = async () => {
-      exited = true
-
-      this.close()
-    }
-
-    this.defineCommand('help', {
-      help: 'Print this help message',
-      action: onhelp
-    })
-    this.defineCommand('exit', { help: 'Exit the REPL', action: onexit })
-
-    const onclose = () => {
-      if (!exited) this.output.write(Readline.constants.EOL)
-
-      this.input.push(null)
-
-      this.output.on('close', () => this.emit('exit')).end()
-    }
-
-    const ondata = async (line) => {
-      await Writable.drained(this.output)
-
-      const expr = line.trim()
-
-      if (expr[0] === '.') {
-        const [command, ...args] = expr.substring(1).split(/\s+/)
-
-        if (command in this.commands) {
-          try {
-            await this.commands[command].action.call(this, ...args)
-          } catch (err) {
-            this.output.write(err + Readline.constants.EOL)
-          }
-        } else {
-          this.output.write('Invalid REPL keyword' + Readline.constants.EOL)
-        }
-      } else {
-        this.eval(expr, this._context, `REPL${++nextIdentifier}`, (err, value) => {
-          this.context._ = value
-
-          this.output.write(this.writer(err || value) + Readline.constants.EOL)
-
-          if (this.destroyed) return
-
-          this.prompt()
-        })
+        Object.defineProperty(this._context, name, Object.getOwnPropertyDescriptor(global, name))
       }
+
+      this._context.global = this._context
     }
 
-    this.on('data', ondata).on('close', onclose).prompt()
+    this._context._ = undefined
+    this._context.require = Module.createRequire(path.join(os.cwd(), '/'), {
+      cache: Object.create(null)
+    })
+
+    this._commands = Object.create(null)
+
+    this._exited = false
+
+    this.defineCommand('help', { help: 'Print this help message', action: this._onhelp })
+    this.defineCommand('exit', { help: 'Exit the REPL', action: this._onexit })
+
+    this.on('data', this._ondata).on('close', this._onclose).prompt()
+  }
+
+  get eval() {
+    return this._eval
+  }
+
+  get writer() {
+    return this._writer
+  }
+
+  get context() {
+    return this._context
+  }
+
+  get commands() {
+    return this._commands
   }
 
   defineCommand(keyword, { help, action }) {
-    this.commands[keyword] = { help, action }
+    this._commands[keyword] = { help, action }
+  }
+
+  _onhelp() {}
+
+  async _onexit() {
+    this._exited = true
+
+    this.close()
+  }
+
+  _onclose() {
+    if (!this._exited) this.output.write(Readline.constants.EOL)
+
+    this.input.push(null)
+
+    this.output.on('close', () => this.emit('exit')).end()
+  }
+
+  async _ondata(line) {
+    await Writable.drained(this.output)
+
+    const expr = line.trim()
+
+    if (expr[0] === '.') {
+      const [command, ...args] = expr.substring(1).split(/\s+/)
+
+      if (command in this._commands) {
+        try {
+          await this._commands[command].action.call(this, ...args)
+        } catch (err) {
+          this.output.write(err + Readline.constants.EOL)
+        }
+      } else {
+        this.output.write('Invalid REPL keyword' + Readline.constants.EOL)
+      }
+    } else {
+      const context = this._useGlobal ? null : this
+
+      this._eval(expr, context, `REPL${++nextIdentifier}`, (err, value) => {
+        this._context._ = value
+
+        this.output.write(this._writer(err || value) + Readline.constants.EOL)
+
+        if (this.destroyed) return
+
+        this.prompt()
+      })
+    }
   }
 }
 
