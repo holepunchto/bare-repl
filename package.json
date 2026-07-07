@@ -32,7 +32,6 @@
   "dependencies": {
     "bare-inspect": "^3.0.0",
     "bare-module": "^6.4.0",
-    "bare-os": "^3.0.1",
     "bare-path": "^3.0.0",
     "bare-pipe": "^4.0.0",
     "bare-readline": "^1.0.0",
