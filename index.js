@@ -1,6 +1,4 @@
 const { Writable } = require('bare-stream')
-const Module = require('bare-module')
-const path = require('bare-path')
 const Readline = require('bare-readline')
 const Pipe = require('bare-pipe')
 const tty = require('bare-tty')
@@ -52,12 +50,7 @@ exports.REPLServer = class REPLServer extends Readline {
     }
 
     this._context._ = undefined
-    this._context.require = Module.createRequire(path.join(path.resolve('.'), '/'), {
-      cache: Object.create(null)
-    })
-
     this._commands = Object.create(null)
-
     this._exited = false
 
     this.defineCommand('help', { help: 'Print this help message', action: this._onhelp })
