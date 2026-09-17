@@ -126,3 +126,107 @@ test('host globals are bridged into the context', async (t) => {
 
   repl.close()
 })
+
+test('dynamic import', async (t) => {
+  t.plan(2)
+
+  const input = new PassThrough()
+  const output = new PassThrough()
+
+  const repl = start({ input, output })
+
+  output.resume()
+
+  repl.context.done = (name) => {
+    t.is(name, 'bare-repl')
+
+    input.write('.exit')
+    input.write('\r')
+  }
+
+  // Specifiers are resolved against the working directory, and the import
+  // attributes must reach the module system along with them.
+  input.write(
+    "import('./package.json', { with: { type: 'json' } }).then((m) => done(m.default.name), (err) => done(err.message))"
+  )
+  input.write('\r')
+
+  repl.on('close', () => t.pass('closed'))
+})
+
+test('dynamic import from a preceding expression', async (t) => {
+  t.plan(2)
+
+  const input = new PassThrough()
+  const output = new PassThrough()
+
+  const repl = start({ input, output })
+
+  output.resume()
+
+  repl.context.done = (name) => {
+    t.is(name, 'bare-repl')
+
+    input.write('.exit')
+    input.write('\r')
+  }
+
+  // The function outlives the expression that declared it and must still be
+  // able to import.
+  input.write("globalThis.load = () => import('./package.json', { with: { type: 'json' } })")
+  input.write('\r')
+  input.write('load().then((m) => done(m.default.name), (err) => done(err.message))')
+  input.write('\r')
+
+  repl.on('close', () => t.pass('closed'))
+})
+
+test('dynamic import of a missing module', async (t) => {
+  t.plan(2)
+
+  const input = new PassThrough()
+  const output = new PassThrough()
+
+  const repl = start({ input, output })
+
+  output.resume()
+
+  repl.context.done = (code) => {
+    t.is(code, 'MODULE_NOT_FOUND')
+
+    input.write('.exit')
+    input.write('\r')
+  }
+
+  input.write("import('./nonexistent.js').then(() => done('loaded'), (err) => done(err.code))")
+  input.write('\r')
+
+  repl.on('close', () => t.pass('closed'))
+})
+
+test('dynamic import against the shared global', async (t) => {
+  t.plan(2)
+
+  const input = new PassThrough()
+  const output = new PassThrough()
+
+  const repl = start({ input, output, useGlobal: true })
+
+  output.resume()
+
+  global.done = (name) => {
+    delete global.done
+
+    t.is(name, 'bare-repl')
+
+    input.write('.exit')
+    input.write('\r')
+  }
+
+  input.write(
+    "import('./package.json', { with: { type: 'json' } }).then((m) => done(m.default.name), (err) => done(err.message))"
+  )
+  input.write('\r')
+
+  repl.on('close', () => t.pass('closed'))
+})

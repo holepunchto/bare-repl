@@ -29,12 +29,16 @@
     "url": "https://github.com/holepunchto/bare-repl/issues"
   },
   "homepage": "https://github.com/holepunchto/bare-repl#readme",
+  "engines": {
+    "bare": ">=1.32.0"
+  },
   "dependencies": {
     "bare-inspect": "^3.0.0",
     "bare-pipe": "^4.0.0",
     "bare-readline": "^1.0.0",
     "bare-stream": "^2.0.0",
-    "bare-tty": "^5.0.0"
+    "bare-tty": "^5.0.0",
+    "bare-url": "^2.0.1"
   },
   "devDependencies": {
     "brittle": "^3.2.1",
