@@ -1,9 +1,12 @@
 const { Writable } = require('bare-stream')
+const { pathToFileURL } = require('bare-url')
 const Readline = require('bare-readline')
 const Pipe = require('bare-pipe')
 const tty = require('bare-tty')
 const inspect = require('bare-inspect')
 const binding = require('./binding')
+
+const handle = binding.init(onimport)
 
 exports.start = function start(opts) {
   if (typeof opts === 'string') opts = { prompt: opts }
@@ -138,10 +141,18 @@ function defaultEval(expression, context, resource, cb) {
   let err = null
   let value
   try {
-    value = binding.eval(expression, context)
+    value = binding.eval(handle, expression, resource, context)
   } catch (e) {
     err = e
   }
 
   cb(err, value)
+}
+
+async function onimport(specifier, attributes) {
+  const parentURL = pathToFileURL('./')
+
+  const resolved = pathToFileURL(require.resolve(specifier, parentURL))
+
+  return await import(resolved.href, { with: attributes })
 }
